@@ -23,6 +23,8 @@ dependencies = [
     "bcrypt>=4.2.0",
     "python-multipart>=0.0.20",
     "boto3>=1.35.0",
+    "geoalchemy2>=0.15.2",
+    "shapely>=2.0.6",
 ]
 
 [dependency-groups]

@@ -2,7 +2,8 @@
 
 import uuid
 
-from sqlalchemy import ForeignKey, LargeBinary, String, Text
+from geoalchemy2 import Geography, WKBElement
+from sqlalchemy import ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -19,7 +20,13 @@ class FreelancerProfile(Base, TimestampMixin, SoftDeleteMixin):
     )
     display_name: Mapped[str] = mapped_column(String(100), nullable=False)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
-    phone: Mapped[str | None] = mapped_column(String(20), nullable=True)  # E.164
+    phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    # bytea cifrado via pgcrypto pgp_sym_encrypt — só decriptar em export LGPD
     cpf_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+
+    # Geo: ponto base do freelancer + raio de atuação
+    location: Mapped[WKBElement | None] = mapped_column(
+        Geography(geometry_type="POINT", srid=4326, spatial_index=True),
+        nullable=True,
+    )
+    service_radius_km: Mapped[int | None] = mapped_column(Integer, nullable=True)

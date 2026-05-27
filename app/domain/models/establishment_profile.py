@@ -2,6 +2,7 @@
 
 import uuid
 
+from geoalchemy2 import Geography, WKBElement
 from sqlalchemy import ForeignKey, LargeBinary, String
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -21,8 +22,13 @@ class EstablishmentProfile(Base, TimestampMixin, SoftDeleteMixin):
     address_line: Mapped[str | None] = mapped_column(String(500), nullable=True)
     neighborhood: Mapped[str | None] = mapped_column(String(100), nullable=True)
     city: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    state: Mapped[str | None] = mapped_column(String(2), nullable=True)  # UF
+    state: Mapped[str | None] = mapped_column(String(2), nullable=True)
     cep: Mapped[str | None] = mapped_column(String(8), nullable=True)
     phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     cnpj_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+
+    location: Mapped[WKBElement | None] = mapped_column(
+        Geography(geometry_type="POINT", srid=4326, spatial_index=True),
+        nullable=True,
+    )

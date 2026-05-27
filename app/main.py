@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse, Response
 
 from app.api.v1.auth.router import router as auth_router
 from app.api.v1.health.router import router as health_router
+from app.api.v1.jobs.router import router as jobs_router
 from app.api.v1.me.router import router as me_router
 from app.core.config import get_settings
 from app.core.exceptions import DomainError
@@ -70,6 +71,7 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(auth_router, prefix="/v1")
     app.include_router(me_router, prefix="/v1")
+    app.include_router(jobs_router, prefix="/v1")
 
     return app
 
