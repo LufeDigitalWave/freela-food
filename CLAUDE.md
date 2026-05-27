@@ -16,7 +16,7 @@
 ## 2. Escopo
 
 ### MVP
-1. Cadastro e auth (freelancer, estabelecimento, admin) via Supabase.
+1. Cadastro e auth (freelancer, estabelecimento, admin) — **custom JWT HS256** (Supabase Auth deferido).
 2. Perfis completos (freela: skills, certificações, disponibilidade, raio de atuação; estabelecimento: endereço, tipo, horário).
 3. CRUD de vagas com filtros (categoria, data, geolocalização, faixa de pagamento).
 4. Fluxo A: candidatura → aceite → confirmação.
@@ -39,38 +39,43 @@ Carteira interna / saldo; contratos formais (só registro do acordo).
 | Package manager | **uv** |
 | Framework API | FastAPI |
 | Validação | Pydantic v2 |
-| ORM / Migrations | SQLAlchemy 2.x async + **Alembic** (fonte de verdade do schema) |
-| DB / Auth / Storage | Supabase (Postgres 15 + PostGIS + GoTrue + Storage) |
-| Dev local | **Supabase CLI** (`supabase start`) — sobe stack idêntica à prod |
-| Cache | Redis 7 (Docker local) |
+| ORM / Migrations | SQLAlchemy 2.x async + **Alembic** (única fonte de verdade do schema) |
+| Banco | **Postgres 15 + PostGIS** rodando na VPS (Easypanel, `93.127.211.7:5435`) |
+| Auth | **Custom JWT HS256** (PyJWT) + bcrypt via `passlib[bcrypt]`. Tabela `users` própria. |
+| Storage | **Deferido** — entra na Sprint 1+ quando precisar upload (provavelmente S3-compatible). |
+| Cache / Filas | Redis 7 na VPS (Easypanel, `93.127.211.7:6380`) |
 | Workers | **ARQ** (async-native, Redis-backed) |
-| JWT | **PyJWT[crypto]** (HS256, validado contra `SUPABASE_JWT_SECRET`) |
 | Testes | Pytest + pytest-asyncio + httpx |
 | Lint/Format | Ruff + Black + mypy (strict) |
 | Pre-commit | ruff + black + mypy + check-yaml |
-| Containerização | Docker + docker-compose (só Redis em dev) |
+| Containerização | Docker + docker-compose (pra deploy futuro, não usado em dev local) |
 | Deploy alvo | VPS (Easypanel) ou Fly.io |
 | Observabilidade | structlog (com filtro PII) + Sentry |
 
 ### Decisões registradas (não revisitar sem ADR)
 - **uv** sobre Poetry: performance e padrão atual.
-- **Supabase CLI local** sobre Postgres puro: zero drift dev/prod, RLS testável local.
-- **Alembic** sobre `supabase migration new`: schema da app versionado em Python, deploy via `alembic upgrade head`. Supabase CLI cuida só dos serviços.
-- **ARQ** sobre Celery: stack async-first, Redis já disponível, config mínima.
+- **Postgres puro na VPS** sobre Supabase: simplificar infra Sprint 0, evitar dependência cloud, reusar VPS própria. Trade-off aceito: refactor de `security.py` + tabela `users` quando migrar pra Supabase Auth (ou outro provider) no futuro.
+- **Custom JWT HS256** sobre OAuth/Supabase Auth: cobre MVP sem dependência externa. Migração possível em sprints futuras.
+- **Alembic** sobre migrations diretas: schema versionado em Python.
+- **ARQ** sobre Celery: stack async-first, Redis disponível, config mínima.
 - **PyJWT** sobre python-jose: jose tem CVEs abertos e está sem manutenção ativa.
+- **passlib[bcrypt]** sobre argon2: padrão estabelecido, suficiente pra MVP.
 - **`audit_log` desde Sprint 0**: backfill é impossível depois.
 
 ## 4. Modelo de domínio
 
 ```
-User (Supabase Auth)
- ├─ FreelancerProfile (1:1)
+User (custom, tabela própria)
+ ├─ id (uuid), email, password_hash (bcrypt), role (freelancer|establishment|admin)
+ ├─ created_at, updated_at, deleted_at
+ │
+ ├─ FreelancerProfile (1:1, opcional)
  │   ├─ Skills[] (M:N com SkillCategory)
  │   ├─ Certifications[]
  │   ├─ AvailabilitySlots[]
  │   └─ ServiceArea (geo: ponto + raio_km)
  │
- └─ EstablishmentProfile (1:1)
+ └─ EstablishmentProfile (1:1, opcional)
      ├─ Address (geo: ponto)
      ├─ EstablishmentType
      └─ OperatingHours
@@ -127,11 +132,12 @@ AuditLog (LGPD)
 ```
 app/
   api/v1/
-    auth/  freelancers/  establishments/  jobs/
+    auth/              # /register, /login, /me
+    freelancers/  establishments/  jobs/
     applications/  invitations/  contracts/  reviews/  notifications/
   core/
     config.py          # Pydantic Settings
-    security.py        # JWT, get_current_user
+    security.py        # JWT issue+validate, password hash
     database.py        # SQLAlchemy engine/session
     redis_client.py
     logging.py         # structlog + filtro PII
@@ -149,13 +155,11 @@ app/
 alembic/
   versions/
   env.py
-supabase/
-  config.toml          # gerado por `supabase init`
 tests/
   unit/
   integration/
   conftest.py
-docker-compose.yml     # só redis
+docker-compose.yml     # pra deploy futuro
 Dockerfile
 pyproject.toml         # uv
 .pre-commit-config.yaml
@@ -180,42 +184,38 @@ docs/
 
 ## 8. Segurança e LGPD
 
-- RLS habilitado em todas as tabelas (definido via migration Alembic com `op.execute`).
+- **RLS opcional**: como estamos com Postgres puro (sem Supabase Auth via JWT no DB), RLS perde valor — política de acesso vive na camada de service. Reativar se migrar pra Supabase Auth.
 - `cpf`, `rg` criptografados em repouso (pgcrypto).
-- `GET /me/export` e `DELETE /me` desde a primeira sprint que tocar perfil.
-- Filtro structlog remove `cpf`, `rg`, `email`, `phone` de qualquer log.
-- JWT do Supabase: expiração curta (1h) + refresh.
+- `GET /me/export` e `DELETE /me` desde a sprint que tocar perfil.
+- Filtro structlog remove `cpf`, `rg`, `email`, `phone`, `password` de qualquer log.
+- JWT: expiração curta (60min) + endpoint de refresh.
+- Senhas com bcrypt cost factor ≥ 12.
 - Toda mutação em entidade sensível grava `audit_log` (via decorator no service).
 
 ## 9. Como rodar
 
-```bash
-# Pré-requisitos: Docker, uv, Supabase CLI
+Pré-requisitos:
+- Python 3.12 (uv gerencia)
+- [uv](https://docs.astral.sh/uv/) instalado
+- Acesso de rede ao Postgres+Redis da VPS (IP whitelistado)
 
+```bash
 # 1. Clonar e instalar deps
 uv sync
 
 # 2. Setup do .env
 cp .env.example .env
-# editar SUPABASE_JWT_SECRET com o valor de `supabase status` após o passo 3
+# editar DATABASE_URL, REDIS_URL, JWT_SECRET (peça pro infra owner)
 
-# 3. Subir stack Supabase local (Postgres+PostGIS+GoTrue+Storage)
-supabase start
-
-# 4. Subir Redis
-docker-compose up -d redis
-
-# 5. Aplicar migrations (Alembic, não Supabase)
+# 3. Aplicar migrations (Alembic)
 uv run alembic upgrade head
 
-# 6. Rodar API
+# 4. Rodar API
 uv run uvicorn app.main:app --reload
 
-# 7. Em outro terminal: worker ARQ (opcional em dev)
+# 5. Em outro terminal: worker ARQ (opcional em dev)
 uv run arq app.workers.arq_worker.WorkerSettings
 ```
-
-Studio do Supabase: `http://localhost:54323`
 
 ## 10. Como o Claude Code deve trabalhar neste repo
 
@@ -223,7 +223,7 @@ Studio do Supabase: `http://localhost:54323`
 - **Sempre** rodar `ruff check && mypy app && pytest` antes de declarar feature pronta.
 - **Nunca** commitar `.env`, chaves ou secrets — usar `.env.example`.
 - **Nunca** mudar a stack da seção 3 sem ADR em `docs/adr/`.
-- **Nunca** usar `supabase db push` ou `supabase migration new` pra schema da app — só Alembic.
+- **Nunca** rodar migration destrutiva em DB compartilhado sem confirmar.
 - Ao adicionar dependência: justificar (1-2 linhas).
 - Decisão arquitetural não óbvia: registrar em `docs/adr/NNNN-titulo.md`.
 - Migration que altera dados: incluir downgrade testado.
@@ -232,11 +232,11 @@ Studio do Supabase: `http://localhost:54323`
 
 ## 11. Roadmap macro
 
-- **Sprint 0**: Scaffolding, Docker, Supabase CLI, Auth integrada, modelos base, audit_log, migrations, ARQ skeleton, pre-commit. ← *você está aqui*
-- **Sprint 1**: Perfis (freela + estabelecimento) + upload Supabase Storage + LGPD endpoints.
+- **Sprint 0**: Scaffolding, Postgres+PostGIS provisionado, Redis provisionado, custom JWT auth, modelos base, audit_log, migrations, ARQ skeleton, pre-commit, testes base. ← *você está aqui*
+- **Sprint 1**: Perfis (freela + estabelecimento) + upload de foto (S3-compatible) + LGPD endpoints (`/me/export`, `DELETE /me`).
 - **Sprint 2**: CRUD de vagas + busca com filtros + geolocalização (PostGIS `ST_DWithin`).
 - **Sprint 3**: Fluxo A end-to-end.
 - **Sprint 4**: Fluxo B.
 - **Sprint 5**: Contratos + avaliações com regra de visibilidade.
 - **Sprint 6**: Notificações in-app + dashboard admin.
-- **Sprint 7+**: IA (matching, moderação), pagamento, mobile.
+- **Sprint 7+**: Migração opcional pra Supabase Auth, matching com IA, moderação, pagamento, mobile.

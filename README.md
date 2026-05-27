@@ -8,19 +8,16 @@ Veja [CLAUDE.md](./CLAUDE.md) para visão, escopo, stack, modelo de domínio, co
 
 ## Pré-requisitos
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [uv](https://docs.astral.sh/uv/) (package manager Python)
-- [Supabase CLI](https://supabase.com/docs/guides/cli)
+- Python 3.12 (uv gerencia)
+- [uv](https://docs.astral.sh/uv/)
+- Acesso de rede ao Postgres+Redis da VPS (IP whitelistado pelo infra owner)
 
 ## Setup
-
-Instruções completas serão adicionadas ao final da Sprint 0. Visão geral:
 
 ```bash
 uv sync
 cp .env.example .env
-supabase start
-docker-compose up -d redis
+# editar DATABASE_URL, REDIS_URL, JWT_SECRET (peça pro infra owner)
 uv run alembic upgrade head
 uv run uvicorn app.main:app --reload
 ```
