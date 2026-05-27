@@ -1,18 +1,20 @@
 """Entrypoint FastAPI — middleware, exception handler, rotas."""
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 from app.api.v1.auth.router import router as auth_router
 from app.api.v1.health.router import router as health_router
+from app.api.v1.me.router import router as me_router
 from app.core.config import get_settings
 from app.core.exceptions import DomainError
 from app.core.logging import configure_logging, get_logger
 from app.core.redis_client import close_redis
+from app.utils.audit import request_ip, request_ua
 
 
 @asynccontextmanager
@@ -41,6 +43,14 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    @app.middleware("http")
+    async def _audit_context(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        request_ip.set(request.client.host if request.client else None)
+        request_ua.set(request.headers.get("user-agent"))
+        return await call_next(request)
+
     @app.exception_handler(DomainError)
     async def _domain_error_handler(_request: Request, exc: DomainError) -> JSONResponse:
         return JSONResponse(
@@ -59,6 +69,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router)
     app.include_router(auth_router, prefix="/v1")
+    app.include_router(me_router, prefix="/v1")
 
     return app
 

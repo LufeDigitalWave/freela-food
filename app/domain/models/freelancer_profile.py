@@ -1,8 +1,8 @@
-"""Perfil de freelancer — 1:1 com User. Esqueleto para Sprint 0."""
+"""Perfil de freelancer — 1:1 com User."""
 
 import uuid
 
-from sqlalchemy import ForeignKey, String, Text
+from sqlalchemy import ForeignKey, LargeBinary, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -19,3 +19,7 @@ class FreelancerProfile(Base, TimestampMixin, SoftDeleteMixin):
     )
     display_name: Mapped[str] = mapped_column(String(100), nullable=False)
     bio: Mapped[str | None] = mapped_column(Text, nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(20), nullable=True)  # E.164
+    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # bytea cifrado via pgcrypto pgp_sym_encrypt — só decriptar em export LGPD
+    cpf_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)

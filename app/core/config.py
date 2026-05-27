@@ -30,6 +30,20 @@ class Settings(BaseSettings):
     cors_origins: Annotated[list[str], NoDecode] = Field(default_factory=list)
     sentry_dsn: str | None = None
 
+    # Chave simétrica pra pgcrypto (pgp_sym_encrypt) — campos sensíveis no Postgres
+    db_encryption_key: SecretStr
+
+    # S3 / MinIO
+    s3_endpoint_url: str
+    s3_region: str = "us-east-1"
+    s3_bucket: str
+    s3_public_base_url: str
+    s3_access_key: SecretStr
+    s3_secret_key: SecretStr
+
+    # LGPD: grace period entre soft-delete e purge definitivo
+    delete_grace_period_days: int = Field(default=30, ge=1)
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_csv(cls, v: str | list[str]) -> list[str]:

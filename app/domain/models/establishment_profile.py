@@ -1,8 +1,8 @@
-"""Perfil de estabelecimento — 1:1 com User. Esqueleto para Sprint 0."""
+"""Perfil de estabelecimento — 1:1 com User."""
 
 import uuid
 
-from sqlalchemy import ForeignKey, String
+from sqlalchemy import ForeignKey, LargeBinary, String
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -19,3 +19,10 @@ class EstablishmentProfile(Base, TimestampMixin, SoftDeleteMixin):
     )
     business_name: Mapped[str] = mapped_column(String(200), nullable=False)
     address_line: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    neighborhood: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    state: Mapped[str | None] = mapped_column(String(2), nullable=True)  # UF
+    cep: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    cnpj_encrypted: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
