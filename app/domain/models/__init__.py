@@ -1,0 +1,19 @@
+"""Re-export de todos os modelos — Alembic detecta tudo via Base.metadata."""
+
+from app.domain.models.audit_log import AuditLog
+from app.domain.models.base import Base
+from app.domain.models.establishment_profile import EstablishmentProfile
+from app.domain.models.freelancer_profile import FreelancerProfile
+from app.domain.models.freelancer_skill import FreelancerSkill
+from app.domain.models.skill_category import SkillCategory
+from app.domain.models.user import User
+
+__all__ = [
+    "AuditLog",
+    "Base",
+    "EstablishmentProfile",
+    "FreelancerProfile",
+    "FreelancerSkill",
+    "SkillCategory",
+    "User",
+]

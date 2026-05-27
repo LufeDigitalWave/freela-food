@@ -1,0 +1,33 @@
+# docker-compose.yml — para DEPLOY (não usado em dev local).
+# Em dev: API e worker rodam direto no host via `uv run ...`.
+# Postgres e Redis vivem na VPS via Easypanel (acessados pela DATABASE_URL/REDIS_URL).
+#
+# Esta stack pode ser usada para um deploy auto-contido em uma VPS própria.
+
+services:
+  api:
+    build:
+      context: .
+      target: runtime
+    image: freela-food-api:latest
+    env_file: .env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  worker:
+    build:
+      context: .
+      target: runtime
+    image: freela-food-api:latest
+    env_file: .env
+    command: ["arq", "app.workers.arq_worker.WorkerSettings"]
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
