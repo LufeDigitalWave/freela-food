@@ -47,7 +47,7 @@ def _to_read(job: JobPosting) -> JobPostingRead:
         end_at=job.end_at,
         hourly_rate=job.hourly_rate,
         total_pay=job.total_pay,
-        status=job.status,  # type: ignore[arg-type]
+        status=job.status,
         created_at=job.created_at,
         updated_at=job.updated_at,
     )

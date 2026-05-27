@@ -67,6 +67,14 @@ strict = true
 plugins = ["pydantic.mypy"]
 exclude = ["^alembic/versions/"]
 
+[[tool.mypy.overrides]]
+module = "shapely.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "geoalchemy2.*"
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 asyncio_default_test_loop_scope = "session"

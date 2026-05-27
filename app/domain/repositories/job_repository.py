@@ -1,7 +1,7 @@
 """Repository de JobPosting com busca por proximidade via PostGIS."""
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from geoalchemy2 import WKBElement
@@ -92,12 +92,10 @@ class JobRepository:
         return job
 
     async def soft_delete(self, job: JobPosting) -> None:
-        from datetime import UTC, datetime as dt
-
         await self._session.execute(
             update(JobPosting)
             .where(JobPosting.id == job.id)
-            .values(deleted_at=dt.now(UTC))
+            .values(deleted_at=datetime.now(UTC))
         )
         await self._session.flush()
 
