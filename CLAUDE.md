@@ -1,0 +1,242 @@
+# freela-food
+
+> Marketplace bidirecional pra freelancers de restaurantes e bares (garçom, barman, cozinheiro, auxiliar, etc.) e estabelecimentos que precisam contratar pontualmente.
+
+---
+
+## 1. Visão e diferenciais
+
+- **Quem usa**: freelancers do setor de food service + bares/restaurantes que precisam de mão de obra avulsa (eventos, plantões, substituições).
+- **Modelo de match**: bidirecional
+  - Estabelecimento publica vaga → freelancers se candidatam.
+  - Estabelecimento busca freelancers disponíveis e envia convite direto.
+- **Confiança**: avaliação mútua após conclusão do serviço.
+- **Cobertura**: Brasil, LGPD-compliant desde o dia zero.
+
+## 2. Escopo
+
+### MVP
+1. Cadastro e auth (freelancer, estabelecimento, admin) via Supabase.
+2. Perfis completos (freela: skills, certificações, disponibilidade, raio de atuação; estabelecimento: endereço, tipo, horário).
+3. CRUD de vagas com filtros (categoria, data, geolocalização, faixa de pagamento).
+4. Fluxo A: candidatura → aceite → confirmação.
+5. Fluxo B: busca de freelancers disponíveis → convite direto → aceite.
+6. Avaliação mútua pós-serviço (1–5 + comentário).
+7. Histórico de trabalhos.
+8. Notificações in-app.
+
+### Fora do MVP
+Pagamento (Pix/Stripe Connect), matching com IA, moderação automatizada, chat de suporte, apps nativos.
+
+### Explicitamente fora de escopo
+Carteira interna / saldo; contratos formais (só registro do acordo).
+
+## 3. Stack
+
+| Camada | Tecnologia |
+|---|---|
+| Linguagem | Python 3.12 |
+| Package manager | **uv** |
+| Framework API | FastAPI |
+| Validação | Pydantic v2 |
+| ORM / Migrations | SQLAlchemy 2.x async + **Alembic** (fonte de verdade do schema) |
+| DB / Auth / Storage | Supabase (Postgres 15 + PostGIS + GoTrue + Storage) |
+| Dev local | **Supabase CLI** (`supabase start`) — sobe stack idêntica à prod |
+| Cache | Redis 7 (Docker local) |
+| Workers | **ARQ** (async-native, Redis-backed) |
+| JWT | **PyJWT[crypto]** (HS256, validado contra `SUPABASE_JWT_SECRET`) |
+| Testes | Pytest + pytest-asyncio + httpx |
+| Lint/Format | Ruff + Black + mypy (strict) |
+| Pre-commit | ruff + black + mypy + check-yaml |
+| Containerização | Docker + docker-compose (só Redis em dev) |
+| Deploy alvo | VPS (Easypanel) ou Fly.io |
+| Observabilidade | structlog (com filtro PII) + Sentry |
+
+### Decisões registradas (não revisitar sem ADR)
+- **uv** sobre Poetry: performance e padrão atual.
+- **Supabase CLI local** sobre Postgres puro: zero drift dev/prod, RLS testável local.
+- **Alembic** sobre `supabase migration new`: schema da app versionado em Python, deploy via `alembic upgrade head`. Supabase CLI cuida só dos serviços.
+- **ARQ** sobre Celery: stack async-first, Redis já disponível, config mínima.
+- **PyJWT** sobre python-jose: jose tem CVEs abertos e está sem manutenção ativa.
+- **`audit_log` desde Sprint 0**: backfill é impossível depois.
+
+## 4. Modelo de domínio
+
+```
+User (Supabase Auth)
+ ├─ FreelancerProfile (1:1)
+ │   ├─ Skills[] (M:N com SkillCategory)
+ │   ├─ Certifications[]
+ │   ├─ AvailabilitySlots[]
+ │   └─ ServiceArea (geo: ponto + raio_km)
+ │
+ └─ EstablishmentProfile (1:1)
+     ├─ Address (geo: ponto)
+     ├─ EstablishmentType
+     └─ OperatingHours
+
+JobPosting
+ ├─ establishment_id, skill_category_id
+ ├─ start_at, end_at, hourly_rate, total_pay
+ ├─ status: draft | open | filled | cancelled | completed
+ └─ Applications[]
+
+Application (Fluxo A)
+ └─ status: pending | accepted | rejected | withdrawn
+
+Invitation (Fluxo B)
+ ├─ proposed_terms (jsonb)
+ └─ status: pending | accepted | declined | expired
+
+ServiceContract (consequência dos dois fluxos)
+ ├─ agreed_terms, started_at, completed_at
+ └─ status: scheduled | in_progress | completed | cancelled | disputed
+
+Review (após contract.completed)
+ ├─ stars (1-5), comment
+ └─ visibility_rule: ambos avaliam OU 7 dias após o primeiro
+
+Notification
+ └─ user_id, type, payload, read_at
+
+AuditLog (LGPD)
+ └─ actor_id, action, entity, entity_id, diff (jsonb), ip, user_agent, created_at
+```
+
+## 5. Fluxos principais
+
+### Fluxo A — Vaga pública
+1. Estabelecimento cria `JobPosting` (`open`).
+2. Sistema notifica freelancers compatíveis (skill + geo + disponibilidade).
+3. Freelancer envia `Application`.
+4. Estabelecimento aceita uma → demais viram `rejected`, `JobPosting.status = filled`, `ServiceContract` criado.
+5. Em `end_at`, contrato vira `completed` (job ARQ). Janela de avaliação de 7 dias abre.
+
+### Fluxo B — Convite direto
+1. Estabelecimento busca freelancers (skill, proximidade, rating).
+2. Envia `Invitation` com termos propostos.
+3. Aceite → `ServiceContract` direto (sem `JobPosting` obrigatório).
+
+### Regras transversais
+- Freelancer não aceita contratos sobrepostos.
+- Avaliação visível só após ambos avaliarem **ou** 7 dias do primeiro (anti-retaliação).
+- Cancelamento <24h da `start_at` gera "no-show" público no perfil.
+
+## 6. Estrutura de pastas
+
+```
+app/
+  api/v1/
+    auth/  freelancers/  establishments/  jobs/
+    applications/  invitations/  contracts/  reviews/  notifications/
+  core/
+    config.py          # Pydantic Settings
+    security.py        # JWT, get_current_user
+    database.py        # SQLAlchemy engine/session
+    redis_client.py
+    logging.py         # structlog + filtro PII
+    exceptions.py      # DomainError e subclasses
+  domain/
+    models/            # SQLAlchemy models
+    schemas/           # Pydantic schemas (XxxCreate/Update/Read separados)
+    repositories/      # Acesso a dados (retornam models)
+    services/          # Regras de negócio (retornam schemas)
+  workers/
+    arq_worker.py      # WorkerSettings ARQ
+    tasks.py
+  utils/
+  main.py
+alembic/
+  versions/
+  env.py
+supabase/
+  config.toml          # gerado por `supabase init`
+tests/
+  unit/
+  integration/
+  conftest.py
+docker-compose.yml     # só redis
+Dockerfile
+pyproject.toml         # uv
+.pre-commit-config.yaml
+.env.example
+docs/
+  adr/                 # decisões arquiteturais (NNNN-titulo.md)
+```
+
+## 7. Convenções de código
+
+- **Tipagem**: 100% type hints, `mypy --strict` no CI.
+- **Schemas**: `XxxCreate`, `XxxUpdate`, `XxxRead` — nunca reutilizar entrada e saída.
+- **Repositórios** retornam models SQLAlchemy; **services** retornam schemas Pydantic.
+- **Endpoints** nunca acessam DB direto — sempre via service.
+- **Async** em endpoints e DB (asyncpg + SQLAlchemy async).
+- **Erros**: subclasses de `DomainError` em `app/core/exceptions.py`, mapeadas pra HTTP no handler central.
+- **Migrations**: nunca editar uma aplicada em prod — gerar nova. Sempre incluir downgrade testado quando alterar dados.
+- **Logs**: nunca PII direta — usar o filtro do `logging.py`.
+- **Commits**: Conventional Commits (`feat:`, `fix:`, `refactor:`, ...).
+- **Branches**: `main` (prod), `dev` (integração), `feat/<nome>`, `fix/<nome>`.
+- Português em comentários e docstrings, inglês em identificadores.
+
+## 8. Segurança e LGPD
+
+- RLS habilitado em todas as tabelas (definido via migration Alembic com `op.execute`).
+- `cpf`, `rg` criptografados em repouso (pgcrypto).
+- `GET /me/export` e `DELETE /me` desde a primeira sprint que tocar perfil.
+- Filtro structlog remove `cpf`, `rg`, `email`, `phone` de qualquer log.
+- JWT do Supabase: expiração curta (1h) + refresh.
+- Toda mutação em entidade sensível grava `audit_log` (via decorator no service).
+
+## 9. Como rodar
+
+```bash
+# Pré-requisitos: Docker, uv, Supabase CLI
+
+# 1. Clonar e instalar deps
+uv sync
+
+# 2. Setup do .env
+cp .env.example .env
+# editar SUPABASE_JWT_SECRET com o valor de `supabase status` após o passo 3
+
+# 3. Subir stack Supabase local (Postgres+PostGIS+GoTrue+Storage)
+supabase start
+
+# 4. Subir Redis
+docker-compose up -d redis
+
+# 5. Aplicar migrations (Alembic, não Supabase)
+uv run alembic upgrade head
+
+# 6. Rodar API
+uv run uvicorn app.main:app --reload
+
+# 7. Em outro terminal: worker ARQ (opcional em dev)
+uv run arq app.workers.arq_worker.WorkerSettings
+```
+
+Studio do Supabase: `http://localhost:54323`
+
+## 10. Como o Claude Code deve trabalhar neste repo
+
+- **Sempre** mostrar plano antes de mudanças que toquem 3+ arquivos.
+- **Sempre** rodar `ruff check && mypy app && pytest` antes de declarar feature pronta.
+- **Nunca** commitar `.env`, chaves ou secrets — usar `.env.example`.
+- **Nunca** mudar a stack da seção 3 sem ADR em `docs/adr/`.
+- **Nunca** usar `supabase db push` ou `supabase migration new` pra schema da app — só Alembic.
+- Ao adicionar dependência: justificar (1-2 linhas).
+- Decisão arquitetural não óbvia: registrar em `docs/adr/NNNN-titulo.md`.
+- Migration que altera dados: incluir downgrade testado.
+- Preferir composição a herança; funções puras quando der; evitar "managers"/"helpers" sem responsabilidade clara.
+- Português em comentário/docstring, inglês em identificador.
+
+## 11. Roadmap macro
+
+- **Sprint 0**: Scaffolding, Docker, Supabase CLI, Auth integrada, modelos base, audit_log, migrations, ARQ skeleton, pre-commit. ← *você está aqui*
+- **Sprint 1**: Perfis (freela + estabelecimento) + upload Supabase Storage + LGPD endpoints.
+- **Sprint 2**: CRUD de vagas + busca com filtros + geolocalização (PostGIS `ST_DWithin`).
+- **Sprint 3**: Fluxo A end-to-end.
+- **Sprint 4**: Fluxo B.
+- **Sprint 5**: Contratos + avaliações com regra de visibilidade.
+- **Sprint 6**: Notificações in-app + dashboard admin.
+- **Sprint 7+**: IA (matching, moderação), pagamento, mobile.
