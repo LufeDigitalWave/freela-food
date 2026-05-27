@@ -2,6 +2,8 @@
 
 import uuid
 
+from geoalchemy2 import WKBElement
+from geoalchemy2.shape import to_shape
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConflictError, NotFoundError, PermissionDenied
@@ -20,7 +22,15 @@ from app.domain.schemas.profile import (
 from app.utils.audit import write_audit_log
 
 
+def _wkb_latlng(wkb: WKBElement | None) -> tuple[float | None, float | None]:
+    if wkb is None:
+        return (None, None)
+    point = to_shape(wkb)
+    return (float(point.y), float(point.x))
+
+
 def _freelancer_to_read(p: FreelancerProfile) -> FreelancerProfileRead:
+    lat, lng = _wkb_latlng(p.location)
     return FreelancerProfileRead(
         user_id=p.user_id,
         display_name=p.display_name,
@@ -28,12 +38,16 @@ def _freelancer_to_read(p: FreelancerProfile) -> FreelancerProfileRead:
         phone=p.phone,
         avatar_url=p.avatar_url,
         has_cpf=p.cpf_encrypted is not None,
+        latitude=lat,
+        longitude=lng,
+        service_radius_km=p.service_radius_km,
         created_at=p.created_at,
         updated_at=p.updated_at,
     )
 
 
 def _establishment_to_read(p: EstablishmentProfile) -> EstablishmentProfileRead:
+    lat, lng = _wkb_latlng(p.location)
     return EstablishmentProfileRead(
         user_id=p.user_id,
         business_name=p.business_name,
@@ -45,6 +59,8 @@ def _establishment_to_read(p: EstablishmentProfile) -> EstablishmentProfileRead:
         phone=p.phone,
         avatar_url=p.avatar_url,
         has_cnpj=p.cnpj_encrypted is not None,
+        latitude=lat,
+        longitude=lng,
         created_at=p.created_at,
         updated_at=p.updated_at,
     )
@@ -77,6 +93,9 @@ class ProfileService:
             bio=payload.bio,
             phone=payload.phone,
             cpf=payload.cpf,
+            latitude=payload.latitude,
+            longitude=payload.longitude,
+            service_radius_km=payload.service_radius_km,
         )
         await write_audit_log(
             self._session,
@@ -88,6 +107,7 @@ class ProfileService:
                 "display_name": payload.display_name,
                 "has_phone": payload.phone is not None,
                 "has_cpf": payload.cpf is not None,
+                "has_location": payload.latitude is not None,
             },
         )
         await self._session.commit()
@@ -107,6 +127,9 @@ class ProfileService:
             bio=payload.bio,
             phone=payload.phone,
             cpf=payload.cpf,
+            latitude=payload.latitude,
+            longitude=payload.longitude,
+            service_radius_km=payload.service_radius_km,
         )
         await write_audit_log(
             self._session,
@@ -148,6 +171,8 @@ class ProfileService:
             cep=payload.cep,
             phone=payload.phone,
             cnpj=payload.cnpj,
+            latitude=payload.latitude,
+            longitude=payload.longitude,
         )
         await write_audit_log(
             self._session,
@@ -158,6 +183,7 @@ class ProfileService:
             diff={
                 "business_name": payload.business_name,
                 "has_cnpj": payload.cnpj is not None,
+                "has_location": payload.latitude is not None,
             },
         )
         await self._session.commit()
@@ -181,6 +207,8 @@ class ProfileService:
             cep=payload.cep,
             phone=payload.phone,
             cnpj=payload.cnpj,
+            latitude=payload.latitude,
+            longitude=payload.longitude,
         )
         await write_audit_log(
             self._session,

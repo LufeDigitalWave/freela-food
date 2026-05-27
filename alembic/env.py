@@ -31,8 +31,16 @@ _APP_TABLES = frozenset(
         "establishment_profiles",
         "skill_categories",
         "freelancer_skills",
+        "job_postings",
     }
 )
+
+
+def _is_postgis_index(name: str | None) -> bool:
+    """Indexes criados pelo GeoAlchemy2 (spatial_index=True) pertencem ao modelo,
+    mas o nome auto-gerado às vezes não bate com o que o ORM declarou.
+    Tudo que começa com `idx_` em coluna `location` é GeoAlchemy2."""
+    return bool(name) and ("location" in (name or ""))
 
 
 def include_object(

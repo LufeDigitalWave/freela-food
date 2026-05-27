@@ -30,6 +30,9 @@ class _FreelancerProfileBase(BaseModel):
     bio: str | None = Field(default=None, max_length=2000)
     phone: Phone | None = None
     cpf: str | None = None
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+    service_radius_km: int | None = Field(default=None, ge=1, le=500)
 
     @field_validator("cpf", mode="before")
     @classmethod
@@ -60,6 +63,9 @@ class FreelancerProfileRead(BaseModel):
     phone: str | None
     avatar_url: str | None
     has_cpf: bool
+    latitude: float | None = None
+    longitude: float | None = None
+    service_radius_km: int | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -76,6 +82,8 @@ class _EstablishmentProfileBase(BaseModel):
     cep: str | None = None
     phone: Phone | None = None
     cnpj: str | None = None
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
 
     @field_validator("cep", mode="before")
     @classmethod
@@ -117,5 +125,7 @@ class EstablishmentProfileRead(BaseModel):
     phone: str | None
     avatar_url: str | None
     has_cnpj: bool
+    latitude: float | None = None
+    longitude: float | None = None
     created_at: datetime
     updated_at: datetime

@@ -1,13 +1,20 @@
-"""Repository de Profile (freelancer + estabelecimento) com pgcrypto."""
+"""Repository de Profile (freelancer + estabelecimento) com pgcrypto + geo."""
 
 import uuid
 
+from geoalchemy2 import WKBElement
+from geoalchemy2.shape import from_shape
+from shapely.geometry import Point
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
 from app.domain.models.establishment_profile import EstablishmentProfile
 from app.domain.models.freelancer_profile import FreelancerProfile
+
+
+def _latlng_to_wkb(latitude: float, longitude: float) -> WKBElement:
+    return from_shape(Point(longitude, latitude), srid=4326)
 
 
 class ProfileRepository:
@@ -38,13 +45,23 @@ class ProfileRepository:
         bio: str | None,
         phone: str | None,
         cpf: str | None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+        service_radius_km: int | None = None,
     ) -> FreelancerProfile:
+        location = (
+            _latlng_to_wkb(latitude, longitude)
+            if latitude is not None and longitude is not None
+            else None
+        )
         profile = FreelancerProfile(
             user_id=user_id,
             display_name=display_name,
             bio=bio,
             phone=phone,
             cpf_encrypted=(await self._encrypt(cpf)) if cpf is not None else None,
+            location=location,
+            service_radius_km=service_radius_km,
         )
         self._session.add(profile)
         await self._session.flush()
@@ -60,6 +77,9 @@ class ProfileRepository:
         phone: str | None = None,
         cpf: str | None = None,
         avatar_url: str | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
+        service_radius_km: int | None = None,
     ) -> FreelancerProfile:
         if display_name is not None:
             profile.display_name = display_name
@@ -71,8 +91,11 @@ class ProfileRepository:
             profile.cpf_encrypted = await self._encrypt(cpf)
         if avatar_url is not None:
             profile.avatar_url = avatar_url
+        if latitude is not None and longitude is not None:
+            profile.location = _latlng_to_wkb(latitude, longitude)
+        if service_radius_km is not None:
+            profile.service_radius_km = service_radius_km
         await self._session.flush()
-        # onupdate=now() marca updated_at como expired — refresh evita lazy reload fora do greenlet
         await self._session.refresh(profile)
         return profile
 
@@ -104,7 +127,14 @@ class ProfileRepository:
         cep: str | None,
         phone: str | None,
         cnpj: str | None,
+        latitude: float | None = None,
+        longitude: float | None = None,
     ) -> EstablishmentProfile:
+        location = (
+            _latlng_to_wkb(latitude, longitude)
+            if latitude is not None and longitude is not None
+            else None
+        )
         profile = EstablishmentProfile(
             user_id=user_id,
             business_name=business_name,
@@ -115,6 +145,7 @@ class ProfileRepository:
             cep=cep,
             phone=phone,
             cnpj_encrypted=(await self._encrypt(cnpj)) if cnpj is not None else None,
+            location=location,
         )
         self._session.add(profile)
         await self._session.flush()
@@ -134,6 +165,8 @@ class ProfileRepository:
         phone: str | None = None,
         cnpj: str | None = None,
         avatar_url: str | None = None,
+        latitude: float | None = None,
+        longitude: float | None = None,
     ) -> EstablishmentProfile:
         if business_name is not None:
             profile.business_name = business_name
@@ -153,6 +186,8 @@ class ProfileRepository:
             profile.cnpj_encrypted = await self._encrypt(cnpj)
         if avatar_url is not None:
             profile.avatar_url = avatar_url
+        if latitude is not None and longitude is not None:
+            profile.location = _latlng_to_wkb(latitude, longitude)
         await self._session.flush()
         await self._session.refresh(profile)
         return profile
