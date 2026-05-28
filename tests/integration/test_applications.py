@@ -283,3 +283,129 @@ async def test_list_applications_status_filter(client: AsyncClient) -> None:
         f"/v1/jobs/{job_id}/applications?status=rejected", headers=est_h
     )
     assert r2.json()["total"] == 0
+
+
+@pytest.mark.asyncio
+async def test_reject_application_by_establishment(client: AsyncClient) -> None:
+    async with SessionLocal() as session:
+        est, _ = await make_establishment(session)
+        fl, _ = await make_freelancer(session)
+        cat = await make_skill_category(session)
+        job = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
+        app_ = await make_application(
+            session, job_posting_id=job.id, freelancer_id=fl.id
+        )
+        await session.commit()
+        aid = app_.id
+        est_email = est.email
+
+    h = await auth_header_for(client, est_email)
+    r = await client.post(f"/v1/applications/{aid}/reject", headers=h)
+    assert r.status_code == 200
+    assert r.json()["status"] == "rejected"
+    assert r.json()["decided_at"] is not None
+
+
+@pytest.mark.asyncio
+async def test_reject_by_non_owner_returns_403(client: AsyncClient) -> None:
+    async with SessionLocal() as session:
+        est, _ = await make_establishment(session)
+        fl, _ = await make_freelancer(session)
+        outro, _ = await make_freelancer(session)
+        cat = await make_skill_category(session)
+        job = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
+        app_ = await make_application(
+            session, job_posting_id=job.id, freelancer_id=fl.id
+        )
+        await session.commit()
+        aid = app_.id
+        outro_email = outro.email
+
+    h = await auth_header_for(client, outro_email)
+    r = await client.post(f"/v1/applications/{aid}/reject", headers=h)
+    assert r.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_reject_non_pending_returns_409(client: AsyncClient) -> None:
+    async with SessionLocal() as session:
+        est, _ = await make_establishment(session)
+        fl, _ = await make_freelancer(session)
+        cat = await make_skill_category(session)
+        job = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
+        app_ = await make_application(
+            session,
+            job_posting_id=job.id,
+            freelancer_id=fl.id,
+            status="rejected",
+        )
+        await session.commit()
+        aid = app_.id
+        est_email = est.email
+
+    h = await auth_header_for(client, est_email)
+    r = await client.post(f"/v1/applications/{aid}/reject", headers=h)
+    assert r.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_withdraw_application_by_freelancer(client: AsyncClient) -> None:
+    async with SessionLocal() as session:
+        est, _ = await make_establishment(session)
+        fl, _ = await make_freelancer(session)
+        cat = await make_skill_category(session)
+        job = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
+        app_ = await make_application(
+            session, job_posting_id=job.id, freelancer_id=fl.id
+        )
+        await session.commit()
+        aid = app_.id
+        fl_email = fl.email
+
+    h = await auth_header_for(client, fl_email)
+    r = await client.post(f"/v1/applications/{aid}/withdraw", headers=h)
+    assert r.status_code == 200
+    assert r.json()["status"] == "withdrawn"
+
+
+@pytest.mark.asyncio
+async def test_withdraw_by_non_owner_returns_403(client: AsyncClient) -> None:
+    async with SessionLocal() as session:
+        est, _ = await make_establishment(session)
+        fl, _ = await make_freelancer(session)
+        outro, _ = await make_freelancer(session)
+        cat = await make_skill_category(session)
+        job = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
+        app_ = await make_application(
+            session, job_posting_id=job.id, freelancer_id=fl.id
+        )
+        await session.commit()
+        aid = app_.id
+        outro_email = outro.email
+
+    h = await auth_header_for(client, outro_email)
+    r = await client.post(f"/v1/applications/{aid}/withdraw", headers=h)
+    assert r.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_reject_emits_notification(client: AsyncClient) -> None:
+    async with SessionLocal() as session:
+        est, _ = await make_establishment(session)
+        fl, _ = await make_freelancer(session)
+        cat = await make_skill_category(session)
+        job = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
+        app_ = await make_application(
+            session, job_posting_id=job.id, freelancer_id=fl.id
+        )
+        await session.commit()
+        aid = app_.id
+        est_email, fl_email = est.email, fl.email
+
+    h = await auth_header_for(client, est_email)
+    await client.post(f"/v1/applications/{aid}/reject", headers=h)
+
+    h_fl = await auth_header_for(client, fl_email)
+    notif = await client.get("/v1/me/notifications", headers=h_fl)
+    types = [n["type"] for n in notif.json()["items"]]
+    assert "application.rejected" in types

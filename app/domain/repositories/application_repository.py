@@ -1,6 +1,7 @@
 """Repository de Application. Outros métodos serão adicionados em tasks subsequentes."""
 
 import uuid
+from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -59,6 +60,19 @@ class ApplicationRepository:
             .limit(page_size)
         )
         return list(result.scalars().all()), int(total or 0)
+
+    async def update_status(
+        self,
+        app_: Application,
+        *,
+        new_status: str,
+        decided_at: datetime | None = None,
+    ) -> Application:
+        app_.status = new_status
+        app_.decided_at = decided_at if decided_at is not None else datetime.now(UTC)
+        await self._session.flush()
+        await self._session.refresh(app_)
+        return app_
 
     async def list_for_freelancer(
         self,

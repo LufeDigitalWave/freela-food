@@ -9,6 +9,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
+    ApplicationNotPending,
     DuplicateApplication,
     JobNotOpen,
     NotFoundError,
@@ -128,6 +129,59 @@ class ApplicationService:
             page=page,
             page_size=page_size,
         )
+
+    async def reject(
+        self, *, user_id: uuid.UUID, app_id: uuid.UUID
+    ) -> ApplicationRead:
+        app_ = await self._repo.get_by_id(app_id)
+        if app_ is None:
+            raise NotFoundError("Candidatura não encontrada")
+        job = await self._jobs.get_by_id(app_.job_posting_id)
+        if job is None or job.establishment_id != user_id:
+            raise PermissionDenied()
+        if app_.status != "pending":
+            raise ApplicationNotPending()
+
+        app_ = await self._repo.update_status(app_, new_status="rejected")
+        await write_audit_log(
+            self._session,
+            actor_id=user_id,
+            action="reject",
+            entity="application",
+            entity_id=app_.id,
+        )
+        await self._notifications.emit(
+            user_id=app_.freelancer_id,
+            type="application.rejected",
+            payload={
+                "application_id": str(app_.id),
+                "job_posting_id": str(app_.job_posting_id),
+            },
+        )
+        await self._session.commit()
+        return ApplicationRead.model_validate(app_)
+
+    async def withdraw(
+        self, *, user_id: uuid.UUID, app_id: uuid.UUID
+    ) -> ApplicationRead:
+        app_ = await self._repo.get_by_id(app_id)
+        if app_ is None:
+            raise NotFoundError("Candidatura não encontrada")
+        if app_.freelancer_id != user_id:
+            raise PermissionDenied()
+        if app_.status != "pending":
+            raise ApplicationNotPending()
+
+        app_ = await self._repo.update_status(app_, new_status="withdrawn")
+        await write_audit_log(
+            self._session,
+            actor_id=user_id,
+            action="withdraw",
+            entity="application",
+            entity_id=app_.id,
+        )
+        await self._session.commit()
+        return ApplicationRead.model_validate(app_)
 
     async def list_mine(
         self,

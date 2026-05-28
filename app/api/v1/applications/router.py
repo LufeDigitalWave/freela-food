@@ -96,3 +96,33 @@ async def get_application(
     return await ApplicationService(session).get_by_id(
         user_id=user_id, app_id=application_id
     )
+
+
+@router.post(
+    "/applications/{application_id}/reject",
+    response_model=ApplicationRead,
+    summary="Estabelecimento rejeita uma candidatura",
+)
+async def reject_application(
+    application_id: uuid.UUID,
+    user_id: UserIdDep,
+    session: SessionDep,
+) -> ApplicationRead:
+    return await ApplicationService(session).reject(
+        user_id=user_id, app_id=application_id
+    )
+
+
+@router.post(
+    "/applications/{application_id}/withdraw",
+    response_model=ApplicationRead,
+    summary="Freelancer retira a própria candidatura",
+)
+async def withdraw_application(
+    application_id: uuid.UUID,
+    user_id: UserIdDep,
+    session: SessionDep,
+) -> ApplicationRead:
+    return await ApplicationService(session).withdraw(
+        user_id=user_id, app_id=application_id
+    )
