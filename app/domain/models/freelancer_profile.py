@@ -30,3 +30,10 @@ class FreelancerProfile(Base, TimestampMixin, SoftDeleteMixin):
         nullable=True,
     )
     service_radius_km: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    no_show_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+    completed_contracts_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
