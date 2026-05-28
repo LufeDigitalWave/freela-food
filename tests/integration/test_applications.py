@@ -8,6 +8,7 @@ from httpx import AsyncClient
 from app.core.database import SessionLocal
 from tests.factories import (
     auth_header_for,
+    make_application,
     make_establishment,
     make_freelancer,
     make_job,
@@ -173,3 +174,112 @@ async def test_application_creates_notification(client: AsyncClient) -> None:
     assert body["total"] >= 1
     types = [n["type"] for n in body["items"]]
     assert "application.received" in types
+
+
+@pytest.mark.asyncio
+async def test_list_job_applications_owner_only(client: AsyncClient) -> None:
+    async with SessionLocal() as session:
+        est, _ = await make_establishment(session)
+        fl1, _ = await make_freelancer(session)
+        fl2, _ = await make_freelancer(session)
+        cat = await make_skill_category(session)
+        job = await make_job(
+            session, establishment_id=est.id, skill_category_id=cat.id
+        )
+        await session.commit()
+        job_id = job.id
+        est_email, fl1_email, fl2_email = est.email, fl1.email, fl2.email
+
+    h1 = await auth_header_for(client, fl1_email)
+    await client.post(f"/v1/jobs/{job_id}/applications", json={}, headers=h1)
+    h2 = await auth_header_for(client, fl2_email)
+    await client.post(f"/v1/jobs/{job_id}/applications", json={}, headers=h2)
+
+    est_h = await auth_header_for(client, est_email)
+    resp = await client.get(f"/v1/jobs/{job_id}/applications", headers=est_h)
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 2
+
+    # freelancer (não dono da vaga) não pode listar
+    resp2 = await client.get(f"/v1/jobs/{job_id}/applications", headers=h1)
+    assert resp2.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_list_my_applications(client: AsyncClient) -> None:
+    async with SessionLocal() as session:
+        est, _ = await make_establishment(session)
+        fl, _ = await make_freelancer(session)
+        cat = await make_skill_category(session)
+        j1 = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
+        j2 = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
+        await session.commit()
+        ids = (j1.id, j2.id)
+        fl_email = fl.email
+
+    h = await auth_header_for(client, fl_email)
+    for jid in ids:
+        await client.post(f"/v1/jobs/{jid}/applications", json={}, headers=h)
+
+    resp = await client.get("/v1/me/applications", headers=h)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 2
+
+
+@pytest.mark.asyncio
+async def test_get_application_only_parties(client: AsyncClient) -> None:
+    async with SessionLocal() as session:
+        est, _ = await make_establishment(session)
+        fl, _ = await make_freelancer(session)
+        outro, _ = await make_freelancer(session)
+        cat = await make_skill_category(session)
+        job = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
+        await session.commit()
+        job_id = job.id
+        est_email, fl_email, outro_email = est.email, fl.email, outro.email
+
+    h_fl = await auth_header_for(client, fl_email)
+    r = await client.post(f"/v1/jobs/{job_id}/applications", json={}, headers=h_fl)
+    aid = r.json()["id"]
+
+    # Freelancer dono vê
+    r1 = await client.get(f"/v1/applications/{aid}", headers=h_fl)
+    assert r1.status_code == 200
+
+    # Estabelecimento dono da vaga vê
+    h_est = await auth_header_for(client, est_email)
+    r2 = await client.get(f"/v1/applications/{aid}", headers=h_est)
+    assert r2.status_code == 200
+
+    # Outro freelancer não vê
+    h_out = await auth_header_for(client, outro_email)
+    r3 = await client.get(f"/v1/applications/{aid}", headers=h_out)
+    assert r3.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_list_applications_status_filter(client: AsyncClient) -> None:
+    async with SessionLocal() as session:
+        est, _ = await make_establishment(session)
+        fl, _ = await make_freelancer(session)
+        cat = await make_skill_category(session)
+        job = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
+        await make_application(
+            session, job_posting_id=job.id, freelancer_id=fl.id, status="pending"
+        )
+        await session.commit()
+        job_id = job.id
+        est_email = est.email
+
+    est_h = await auth_header_for(client, est_email)
+    r = await client.get(
+        f"/v1/jobs/{job_id}/applications?status=pending", headers=est_h
+    )
+    assert r.status_code == 200
+    assert r.json()["total"] == 1
+
+    r2 = await client.get(
+        f"/v1/jobs/{job_id}/applications?status=rejected", headers=est_h
+    )
+    assert r2.json()["total"] == 0

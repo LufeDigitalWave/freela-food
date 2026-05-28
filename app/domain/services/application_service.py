@@ -12,13 +12,18 @@ from app.core.exceptions import (
     DuplicateApplication,
     JobNotOpen,
     NotFoundError,
+    PermissionDenied,
     ProfileRequired,
     SelfApplicationForbidden,
 )
 from app.domain.repositories.application_repository import ApplicationRepository
 from app.domain.repositories.job_repository import JobRepository
 from app.domain.repositories.profile_repository import ProfileRepository
-from app.domain.schemas.application import ApplicationCreate, ApplicationRead
+from app.domain.schemas.application import (
+    ApplicationCreate,
+    ApplicationList,
+    ApplicationRead,
+)
 from app.domain.services.notification_service import NotificationService
 from app.utils.audit import write_audit_log
 
@@ -82,3 +87,65 @@ class ApplicationService:
 
         await self._session.commit()
         return ApplicationRead.model_validate(app_)
+
+    async def get_by_id(
+        self, *, user_id: uuid.UUID, app_id: uuid.UUID
+    ) -> ApplicationRead:
+        app_ = await self._repo.get_by_id(app_id)
+        if app_ is None:
+            raise NotFoundError("Candidatura não encontrada")
+        job = await self._jobs.get_by_id(app_.job_posting_id)
+        is_freelancer = app_.freelancer_id == user_id
+        is_establishment = job is not None and job.establishment_id == user_id
+        if not (is_freelancer or is_establishment):
+            raise PermissionDenied()
+        return ApplicationRead.model_validate(app_)
+
+    async def list_for_job(
+        self,
+        *,
+        user_id: uuid.UUID,
+        job_id: uuid.UUID,
+        status_filter: str | None,
+        page: int,
+        page_size: int,
+    ) -> ApplicationList:
+        job = await self._jobs.get_by_id(job_id)
+        if job is None:
+            raise NotFoundError("Vaga não encontrada")
+        if job.establishment_id != user_id:
+            raise PermissionDenied()
+
+        items, total = await self._repo.list_for_job(
+            job_posting_id=job_id,
+            status_filter=status_filter,
+            page=page,
+            page_size=page_size,
+        )
+        return ApplicationList(
+            items=[ApplicationRead.model_validate(a) for a in items],
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
+
+    async def list_mine(
+        self,
+        *,
+        user_id: uuid.UUID,
+        status_filter: str | None,
+        page: int,
+        page_size: int,
+    ) -> ApplicationList:
+        items, total = await self._repo.list_for_freelancer(
+            freelancer_id=user_id,
+            status_filter=status_filter,
+            page=page,
+            page_size=page_size,
+        )
+        return ApplicationList(
+            items=[ApplicationRead.model_validate(a) for a in items],
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
