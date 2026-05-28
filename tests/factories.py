@@ -2,14 +2,197 @@
 
 Cada factory recebe `session: AsyncSession` e retorna o model criado, já com
 flush() executado. Não commita — assume controle transacional do test.
+
+Emails são únicos por default (uuid) pra evitar pollution no DB compartilhado.
 """
 
 from __future__ import annotations
 
-import uuid  # noqa: F401  (usado pelas factories nas próximas tasks)
-from datetime import UTC, datetime, timedelta  # noqa: F401
-from decimal import Decimal  # noqa: F401
+import uuid
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 
-from sqlalchemy.ext.asyncio import AsyncSession  # noqa: F401
+from geoalchemy2.shape import from_shape
+from httpx import AsyncClient
+from shapely.geometry import Point
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-# Factories serão preenchidas conforme as tasks adicionam os models.
+from app.core.security import hash_password
+from app.domain.models.application import Application
+from app.domain.models.establishment_profile import EstablishmentProfile
+from app.domain.models.freelancer_profile import FreelancerProfile
+from app.domain.models.job_posting import JobPosting
+from app.domain.models.service_contract import ServiceContract
+from app.domain.models.skill_category import SkillCategory
+from app.domain.models.user import User
+
+
+async def make_user(
+    session: AsyncSession,
+    *,
+    email: str | None = None,
+    role: str = "freelancer",
+    password: str = "Senha123!",
+) -> User:
+    user = User(
+        email=email or f"u-{uuid.uuid4().hex[:8]}@test.com",
+        password_hash=hash_password(password),
+        role=role,
+    )
+    session.add(user)
+    await session.flush()
+    await session.refresh(user)
+    return user
+
+
+async def make_freelancer(
+    session: AsyncSession,
+    *,
+    email: str | None = None,
+    display_name: str = "Freela Test",
+    lat: float = -23.55,
+    lng: float = -46.63,
+) -> tuple[User, FreelancerProfile]:
+    user = await make_user(session, email=email, role="freelancer")
+    profile = FreelancerProfile(
+        user_id=user.id,
+        display_name=display_name,
+        location=from_shape(Point(lng, lat), srid=4326),
+        service_radius_km=10,
+    )
+    session.add(profile)
+    await session.flush()
+    await session.refresh(profile)
+    return user, profile
+
+
+async def make_establishment(
+    session: AsyncSession,
+    *,
+    email: str | None = None,
+    business_name: str = "Bar Test",
+    lat: float = -23.55,
+    lng: float = -46.63,
+) -> tuple[User, EstablishmentProfile]:
+    user = await make_user(session, email=email, role="establishment")
+    profile = EstablishmentProfile(
+        user_id=user.id,
+        business_name=business_name,
+        location=from_shape(Point(lng, lat), srid=4326),
+    )
+    session.add(profile)
+    await session.flush()
+    await session.refresh(profile)
+    return user, profile
+
+
+async def make_skill_category(
+    session: AsyncSession, *, slug: str = "garcom", name: str = "Garçom"
+) -> SkillCategory:
+    """Retorna a SkillCategory com esse slug; cria se não existir."""
+    result = await session.execute(
+        select(SkillCategory).where(SkillCategory.slug == slug)
+    )
+    existing = result.scalar_one_or_none()
+    if existing is not None:
+        return existing
+    cat = SkillCategory(slug=slug, name=name)
+    session.add(cat)
+    await session.flush()
+    await session.refresh(cat)
+    return cat
+
+
+async def make_job(
+    session: AsyncSession,
+    *,
+    establishment_id: uuid.UUID,
+    skill_category_id: uuid.UUID,
+    title: str = "Vaga teste",
+    status: str = "open",
+    start_at: datetime | None = None,
+    end_at: datetime | None = None,
+    hourly_rate: Decimal | None = Decimal("30.00"),
+    total_pay: Decimal | None = None,
+    lat: float = -23.55,
+    lng: float = -46.63,
+) -> JobPosting:
+    s = start_at or (datetime.now(UTC) + timedelta(days=1))
+    e = end_at or (s + timedelta(hours=4))
+    job = JobPosting(
+        establishment_id=establishment_id,
+        skill_category_id=skill_category_id,
+        title=title,
+        location=from_shape(Point(lng, lat), srid=4326),
+        start_at=s,
+        end_at=e,
+        hourly_rate=hourly_rate,
+        total_pay=total_pay,
+        status=status,
+    )
+    session.add(job)
+    await session.flush()
+    await session.refresh(job)
+    return job
+
+
+async def make_application(
+    session: AsyncSession,
+    *,
+    job_posting_id: uuid.UUID,
+    freelancer_id: uuid.UUID,
+    status: str = "pending",
+    message: str | None = None,
+) -> Application:
+    app_ = Application(
+        job_posting_id=job_posting_id,
+        freelancer_id=freelancer_id,
+        status=status,
+        message=message,
+    )
+    session.add(app_)
+    await session.flush()
+    await session.refresh(app_)
+    return app_
+
+
+async def make_contract(
+    session: AsyncSession,
+    *,
+    application_id: uuid.UUID,
+    job_posting_id: uuid.UUID,
+    freelancer_id: uuid.UUID,
+    establishment_id: uuid.UUID,
+    start_at: datetime | None = None,
+    end_at: datetime | None = None,
+    status: str = "scheduled",
+    agreed_hourly_rate: Decimal | None = Decimal("30.00"),
+) -> ServiceContract:
+    s = start_at or (datetime.now(UTC) + timedelta(days=1))
+    e = end_at or (s + timedelta(hours=4))
+    contract = ServiceContract(
+        application_id=application_id,
+        job_posting_id=job_posting_id,
+        freelancer_id=freelancer_id,
+        establishment_id=establishment_id,
+        start_at=s,
+        end_at=e,
+        status=status,
+        agreed_hourly_rate=agreed_hourly_rate,
+    )
+    session.add(contract)
+    await session.flush()
+    await session.refresh(contract)
+    return contract
+
+
+async def auth_header_for(
+    client: AsyncClient, email: str, password: str = "Senha123!"
+) -> dict[str, str]:
+    """Login via API e retorna {Authorization: Bearer ...}."""
+    resp = await client.post(
+        "/v1/auth/login", json={"email": email, "password": password}
+    )
+    assert resp.status_code == 200, resp.text
+    return {"Authorization": f"Bearer {resp.json()['access_token']}"}
