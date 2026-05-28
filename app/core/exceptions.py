@@ -41,3 +41,38 @@ class ValidationError(DomainError):
 class AuthenticationError(DomainError):
     status_code = status.HTTP_401_UNAUTHORIZED
     detail = "Credenciais inválidas"
+
+
+# ── Sprint 3 ────────────────────────────────────────────────────────────────
+
+
+class JobNotOpen(ConflictError):
+    detail = "Vaga não está aberta para candidaturas"
+
+
+class SelfApplicationForbidden(PermissionDenied):
+    detail = "Estabelecimento não pode se candidatar à própria vaga"
+
+
+class ProfileRequired(ConflictError):
+    detail = "É necessário ter perfil de freelancer para candidatar-se"
+
+
+class DuplicateApplication(ConflictError):
+    detail = "Já existe candidatura sua nesta vaga"
+
+
+class ApplicationNotPending(ConflictError):
+    detail = "Candidatura já foi decidida"
+
+
+class FreelancerOverlap(ConflictError):
+    detail = "Freelancer já tem contrato sobreposto no horário"
+
+
+class ContractAlreadyTerminal(ConflictError):
+    detail = "Contrato já está em estado final (completed ou cancelled)"
+
+
+class NotificationNotFound(NotFoundError):
+    detail = "Notificação não encontrada"
