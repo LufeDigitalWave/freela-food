@@ -22,6 +22,7 @@ from app.core.security import hash_password
 from app.domain.models.application import Application
 from app.domain.models.establishment_profile import EstablishmentProfile
 from app.domain.models.freelancer_profile import FreelancerProfile
+from app.domain.models.freelancer_skill import FreelancerSkill
 from app.domain.models.job_posting import JobPosting
 from app.domain.models.service_contract import ServiceContract
 from app.domain.models.skill_category import SkillCategory
@@ -185,6 +186,22 @@ async def make_contract(
     await session.flush()
     await session.refresh(contract)
     return contract
+
+
+async def make_freelancer_skill(
+    session: AsyncSession,
+    *,
+    freelancer_user_id: uuid.UUID,
+    skill_category_id: uuid.UUID,
+) -> FreelancerSkill:
+    link = FreelancerSkill(
+        freelancer_user_id=freelancer_user_id,
+        skill_category_id=skill_category_id,
+    )
+    session.add(link)
+    await session.flush()
+    await session.refresh(link)
+    return link
 
 
 async def auth_header_for(
