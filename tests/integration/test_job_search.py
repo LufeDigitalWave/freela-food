@@ -12,7 +12,6 @@ from app.domain.models.skill_category import SkillCategory
 # Pontos de São Paulo
 PAULISTA = (-23.561, -46.656)  # Av Paulista
 PINHEIROS = (-23.564, -46.694)  # Pinheiros (~4 km de Paulista)
-GUARULHOS = (-23.463, -46.533)  # Guarulhos (~20 km de Paulista)
 
 
 def _email() -> str:
@@ -79,23 +78,33 @@ async def _freelancer_token(client: AsyncClient) -> str:
 
 
 async def test_search_returns_jobs_within_radius(client: AsyncClient) -> None:
-    # 2 jobs próximos, 1 distante
-    paulista_job = await _setup_estab_with_job(client, *PAULISTA)
-    pinheiros_job = await _setup_estab_with_job(client, *PINHEIROS)
-    await _setup_estab_with_job(client, *GUARULHOS)
+    # Âncora geográfica única por execução: o DB da VPS é compartilhado e
+    # acumula vagas em coords fixas (ex.: Paulista) de runs anteriores, o que
+    # empurrava as vagas deste teste pra fora da 1ª página da busca paginada.
+    # Um ponto único isola este teste — só as 3 vagas criadas aqui caem no raio.
+    seed = uuid.uuid4().int
+    anchor_lat = -23.5 - (seed % 500) / 1000.0  # -23.500 .. -24.000
+    anchor_lng = -47.5 - ((seed >> 32) % 500) / 1000.0  # -47.500 .. -48.000
+    near = (anchor_lat + 0.036, anchor_lng)  # ~4 km (dentro de 10 km)
+    far = (anchor_lat + 0.18, anchor_lng)  # ~20 km (fora de 10 km)
+
+    anchor_job = await _setup_estab_with_job(client, anchor_lat, anchor_lng)
+    near_job = await _setup_estab_with_job(client, *near)
+    far_job = await _setup_estab_with_job(client, *far)
 
     token = await _freelancer_token(client)
     response = await client.get(
         "/v1/jobs/search",
         headers={"Authorization": f"Bearer {token}"},
-        params={"latitude": PAULISTA[0], "longitude": PAULISTA[1], "radius_km": 10},
+        params={"latitude": anchor_lat, "longitude": anchor_lng, "radius_km": 10},
     )
     assert response.status_code == 200, response.text
     data = response.json()
     job_ids = {item["id"] for item in data["items"]}
-    assert paulista_job in job_ids
-    assert pinheiros_job in job_ids
-    # Guarulhos (>10km) deve estar fora
+    assert anchor_job in job_ids
+    assert near_job in job_ids
+    # A vaga a ~20 km deve estar fora
+    assert far_job not in job_ids
     distances = [item["distance_m"] for item in data["items"]]
     assert all(d <= 10_000 for d in distances)
 
