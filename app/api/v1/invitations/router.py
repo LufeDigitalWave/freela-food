@@ -96,3 +96,18 @@ async def withdraw_invitation(
     return await InvitationService(session).withdraw(
         user_id=user_id, invitation_id=invitation_id
     )
+
+
+@router.post(
+    "/invitations/{invitation_id}/accept",
+    response_model=InvitationRead,
+    summary="Freelancer aceita um convite (cria contrato)",
+)
+async def accept_invitation(
+    invitation_id: uuid.UUID,
+    user_id: UserIdDep,
+    session: SessionDep,
+) -> InvitationRead:
+    return await InvitationService(session).accept(
+        user_id=user_id, invitation_id=invitation_id
+    )

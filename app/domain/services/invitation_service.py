@@ -9,12 +9,15 @@ from app.core.config import get_settings
 from app.core.exceptions import (
     DuplicateInvitation,
     EstablishmentProfileRequired,
+    FreelancerOverlap,
     InvalidInvitationTarget,
     InvalidInvitationWindow,
+    InvitationExpired,
     InvitationNotPending,
     NotFoundError,
     PermissionDenied,
 )
+from app.domain.repositories.contract_repository import ContractRepository
 from app.domain.repositories.invitation_repository import InvitationRepository
 from app.domain.repositories.profile_repository import ProfileRepository
 from app.domain.schemas.invitation import InvitationCreate, InvitationList, InvitationRead
@@ -181,6 +184,82 @@ class InvitationService:
             user_id=inv.freelancer_id,
             type="invitation.withdrawn",
             payload={"invitation_id": str(inv.id)},
+        )
+        await self._session.commit()
+        return InvitationRead.model_validate(inv)
+
+    async def accept(
+        self, *, user_id: uuid.UUID, invitation_id: uuid.UUID
+    ) -> InvitationRead:
+        contracts_repo = ContractRepository(self._session)
+
+        inv = await self._repo.get_by_id(invitation_id)
+        if inv is None:
+            raise NotFoundError("Convite não encontrado")
+        if inv.freelancer_id != user_id:
+            raise PermissionDenied()
+        if inv.status != "pending":
+            raise InvitationNotPending()
+
+        now = datetime.now(UTC)
+        if inv.expires_at <= now:
+            raise InvitationExpired()
+
+        if await contracts_repo.has_overlap(
+            freelancer_id=inv.freelancer_id,
+            start_at=inv.start_at,
+            end_at=inv.end_at,
+        ):
+            raise FreelancerOverlap()
+
+        # 1) Convite aceito
+        inv = await self._repo.update_status(
+            inv, new_status="accepted", decided_at=now
+        )
+
+        # 2) Cria contrato (origem invitation, sem job)
+        contract = await contracts_repo.create(
+            invitation_id=inv.id,
+            freelancer_id=inv.freelancer_id,
+            establishment_id=inv.establishment_id,
+            start_at=inv.start_at,
+            end_at=inv.end_at,
+            agreed_hourly_rate=inv.proposed_hourly_rate,
+            agreed_total_pay=inv.proposed_total_pay,
+        )
+
+        # 3) Cascade: auto-decline dos convites pending sobrepostos
+        overlapping = await self._repo.list_pending_overlapping_for_freelancer(
+            freelancer_id=inv.freelancer_id,
+            start_at=inv.start_at,
+            end_at=inv.end_at,
+            except_id=inv.id,
+        )
+        for other in overlapping:
+            await self._repo.update_status(
+                other, new_status="declined", decided_at=now
+            )
+            await self._notifications.emit(
+                user_id=other.establishment_id,
+                type="invitation.declined",
+                payload={"invitation_id": str(other.id), "auto": True},
+            )
+
+        await write_audit_log(
+            self._session,
+            actor_id=user_id,
+            action="accept",
+            entity="invitation",
+            entity_id=inv.id,
+            diff={"contract_id": str(contract.id)},
+        )
+        await self._notifications.emit(
+            user_id=inv.establishment_id,
+            type="invitation.accepted",
+            payload={
+                "invitation_id": str(inv.id),
+                "contract_id": str(contract.id),
+            },
         )
         await self._session.commit()
         return InvitationRead.model_validate(inv)
