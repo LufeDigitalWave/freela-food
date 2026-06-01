@@ -93,7 +93,9 @@ async def test_search_orders_by_distance_ascending(client: AsyncClient) -> None:
 async def test_search_filters_by_skill(client: AsyncClient) -> None:
     anchor_lat, anchor_lng = _anchor()
     async with SessionLocal() as session:
-        cat = await make_skill_category(session)
+        cat = await make_skill_category(
+            session, slug=f"cat-{uuid.uuid4().hex[:8]}", name="Test"
+        )
         await session.commit()
         skill_id = cat.id
     with_skill = await _make_freelancer_at(anchor_lat, anchor_lng, skill_id=skill_id)
