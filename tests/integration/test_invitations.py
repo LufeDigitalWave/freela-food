@@ -220,3 +220,58 @@ async def test_get_invitation_not_found(client: AsyncClient) -> None:
     headers = await auth_header_for(client, str(s["est_email"]), PWD)
     resp = await client.get(f"/v1/invitations/{uuid.uuid4()}", headers=headers)
     assert resp.status_code == 404
+
+
+async def _create_invitation(client: AsyncClient, s: dict) -> tuple[str, dict, dict]:
+    est_headers = await auth_header_for(client, str(s["est_email"]), PWD)
+    fl_headers = await auth_header_for(client, str(s["fl_email"]), PWD)
+    start, end = _future_window()
+    created = await client.post(
+        "/v1/invitations",
+        headers=est_headers,
+        json={
+            "freelancer_id": str(s["fl_id"]),
+            "skill_category_id": str(s["skill_id"]),
+            "start_at": start,
+            "end_at": end,
+        },
+    )
+    return created.json()["id"], est_headers, fl_headers
+
+
+async def test_decline_by_freelancer(client: AsyncClient) -> None:
+    s = await _seed_pair()
+    inv_id, _, fl_headers = await _create_invitation(client, s)
+    resp = await client.post(f"/v1/invitations/{inv_id}/decline", headers=fl_headers)
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "declined"
+
+
+async def test_decline_forbidden_for_establishment(client: AsyncClient) -> None:
+    s = await _seed_pair()
+    inv_id, est_headers, _ = await _create_invitation(client, s)
+    resp = await client.post(f"/v1/invitations/{inv_id}/decline", headers=est_headers)
+    assert resp.status_code == 403
+
+
+async def test_withdraw_by_establishment(client: AsyncClient) -> None:
+    s = await _seed_pair()
+    inv_id, est_headers, _ = await _create_invitation(client, s)
+    resp = await client.post(f"/v1/invitations/{inv_id}/withdraw", headers=est_headers)
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "withdrawn"
+
+
+async def test_withdraw_forbidden_for_freelancer(client: AsyncClient) -> None:
+    s = await _seed_pair()
+    inv_id, _, fl_headers = await _create_invitation(client, s)
+    resp = await client.post(f"/v1/invitations/{inv_id}/withdraw", headers=fl_headers)
+    assert resp.status_code == 403
+
+
+async def test_decline_already_decided(client: AsyncClient) -> None:
+    s = await _seed_pair()
+    inv_id, _, fl_headers = await _create_invitation(client, s)
+    await client.post(f"/v1/invitations/{inv_id}/decline", headers=fl_headers)
+    again = await client.post(f"/v1/invitations/{inv_id}/decline", headers=fl_headers)
+    assert again.status_code == 409

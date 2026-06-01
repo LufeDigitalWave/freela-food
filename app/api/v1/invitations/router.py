@@ -66,3 +66,33 @@ async def create_invitation(
     return await InvitationService(session).create(
         establishment_id=user_id, payload=payload
     )
+
+
+@router.post(
+    "/invitations/{invitation_id}/decline",
+    response_model=InvitationRead,
+    summary="Freelancer recusa um convite",
+)
+async def decline_invitation(
+    invitation_id: uuid.UUID,
+    user_id: UserIdDep,
+    session: SessionDep,
+) -> InvitationRead:
+    return await InvitationService(session).decline(
+        user_id=user_id, invitation_id=invitation_id
+    )
+
+
+@router.post(
+    "/invitations/{invitation_id}/withdraw",
+    response_model=InvitationRead,
+    summary="Estabelecimento retira um convite",
+)
+async def withdraw_invitation(
+    invitation_id: uuid.UUID,
+    user_id: UserIdDep,
+    session: SessionDep,
+) -> InvitationRead:
+    return await InvitationService(session).withdraw(
+        user_id=user_id, invitation_id=invitation_id
+    )

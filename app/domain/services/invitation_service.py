@@ -11,6 +11,7 @@ from app.core.exceptions import (
     EstablishmentProfileRequired,
     InvalidInvitationTarget,
     InvalidInvitationWindow,
+    InvitationNotPending,
     NotFoundError,
     PermissionDenied,
 )
@@ -120,4 +121,66 @@ class InvitationService:
             raise NotFoundError("Convite não encontrado")
         if user_id not in (inv.establishment_id, inv.freelancer_id):
             raise PermissionDenied()
+        return InvitationRead.model_validate(inv)
+
+    async def decline(
+        self, *, user_id: uuid.UUID, invitation_id: uuid.UUID
+    ) -> InvitationRead:
+        inv = await self._repo.get_by_id(invitation_id)
+        if inv is None:
+            raise NotFoundError("Convite não encontrado")
+        if inv.freelancer_id != user_id:
+            raise PermissionDenied()
+        if inv.status != "pending":
+            raise InvitationNotPending()
+
+        now = datetime.now(UTC)
+        inv = await self._repo.update_status(
+            inv, new_status="declined", decided_at=now
+        )
+        await write_audit_log(
+            self._session,
+            actor_id=user_id,
+            action="decline",
+            entity="invitation",
+            entity_id=inv.id,
+            diff={},
+        )
+        await self._notifications.emit(
+            user_id=inv.establishment_id,
+            type="invitation.declined",
+            payload={"invitation_id": str(inv.id), "auto": False},
+        )
+        await self._session.commit()
+        return InvitationRead.model_validate(inv)
+
+    async def withdraw(
+        self, *, user_id: uuid.UUID, invitation_id: uuid.UUID
+    ) -> InvitationRead:
+        inv = await self._repo.get_by_id(invitation_id)
+        if inv is None:
+            raise NotFoundError("Convite não encontrado")
+        if inv.establishment_id != user_id:
+            raise PermissionDenied()
+        if inv.status != "pending":
+            raise InvitationNotPending()
+
+        now = datetime.now(UTC)
+        inv = await self._repo.update_status(
+            inv, new_status="withdrawn", decided_at=now
+        )
+        await write_audit_log(
+            self._session,
+            actor_id=user_id,
+            action="withdraw",
+            entity="invitation",
+            entity_id=inv.id,
+            diff={},
+        )
+        await self._notifications.emit(
+            user_id=inv.freelancer_id,
+            type="invitation.withdrawn",
+            payload={"invitation_id": str(inv.id)},
+        )
+        await self._session.commit()
         return InvitationRead.model_validate(inv)
