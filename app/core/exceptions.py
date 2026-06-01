@@ -76,3 +76,30 @@ class ContractAlreadyTerminal(ConflictError):
 
 class NotificationNotFound(NotFoundError):
     detail = "Notificação não encontrada"
+
+
+# ── Sprint 4 (Fluxo B) ───────────────────────────────────────────────────────
+
+
+class EstablishmentProfileRequired(ConflictError):
+    detail = "É necessário ter perfil de estabelecimento para esta ação"
+
+
+class InvalidInvitationTarget(DomainError):
+    detail = "Convidado precisa ser um freelancer ativo"
+
+
+class InvalidInvitationWindow(DomainError):
+    detail = "Janela do convite inválida (início no futuro e fim após início)"
+
+
+class DuplicateInvitation(ConflictError):
+    detail = "Já existe convite pendente sobreposto para este freelancer"
+
+
+class InvitationNotPending(ConflictError):
+    detail = "Convite já foi decidido"
+
+
+class InvitationExpired(ConflictError):
+    detail = "Convite expirou"
