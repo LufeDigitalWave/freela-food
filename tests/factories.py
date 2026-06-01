@@ -23,6 +23,7 @@ from app.domain.models.application import Application
 from app.domain.models.establishment_profile import EstablishmentProfile
 from app.domain.models.freelancer_profile import FreelancerProfile
 from app.domain.models.freelancer_skill import FreelancerSkill
+from app.domain.models.invitation import Invitation
 from app.domain.models.job_posting import JobPosting
 from app.domain.models.service_contract import ServiceContract
 from app.domain.models.skill_category import SkillCategory
@@ -202,6 +203,36 @@ async def make_freelancer_skill(
     await session.flush()
     await session.refresh(link)
     return link
+
+
+async def make_invitation(
+    session: AsyncSession,
+    *,
+    establishment_id: uuid.UUID,
+    freelancer_id: uuid.UUID,
+    skill_category_id: uuid.UUID,
+    start_at: datetime | None = None,
+    end_at: datetime | None = None,
+    status: str = "pending",
+    expires_at: datetime | None = None,
+    proposed_hourly_rate: Decimal | None = Decimal("30.00"),
+) -> Invitation:
+    s = start_at or (datetime.now(UTC) + timedelta(days=1))
+    e = end_at or (s + timedelta(hours=4))
+    inv = Invitation(
+        establishment_id=establishment_id,
+        freelancer_id=freelancer_id,
+        skill_category_id=skill_category_id,
+        start_at=s,
+        end_at=e,
+        proposed_hourly_rate=proposed_hourly_rate,
+        status=status,
+        expires_at=expires_at or (s),
+    )
+    session.add(inv)
+    await session.flush()
+    await session.refresh(inv)
+    return inv
 
 
 async def auth_header_for(
