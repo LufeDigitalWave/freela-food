@@ -232,11 +232,11 @@ uv run arq app.workers.arq_worker.WorkerSettings
 
 ## 11. Roadmap macro
 
-- **Sprint 0**: Scaffolding, Postgres+PostGIS provisionado, Redis provisionado, custom JWT auth, modelos base, audit_log, migrations, ARQ skeleton, pre-commit, testes base. ← *você está aqui*
-- **Sprint 1**: Perfis (freela + estabelecimento) + upload de foto (S3-compatible) + LGPD endpoints (`/me/export`, `DELETE /me`).
-- **Sprint 2**: CRUD de vagas + busca com filtros + geolocalização (PostGIS `ST_DWithin`).
-- **Sprint 3**: Fluxo A end-to-end.
-- **Sprint 4**: Fluxo B.
+- **Sprint 0**: Scaffolding, Postgres+PostGIS provisionado, Redis provisionado, custom JWT auth, modelos base, audit_log, migrations, ARQ skeleton, pre-commit, testes base. ✅
+- **Sprint 1**: Perfis (freela + estabelecimento) + upload de foto (S3-compatible) + LGPD endpoints (`/me/export`, `DELETE /me`). ✅
+- **Sprint 2**: CRUD de vagas + busca com filtros + geolocalização (PostGIS `ST_DWithin`). ✅
+- **Sprint 3**: Fluxo A end-to-end (candidatura → aceite transacional → contrato + cron de ciclo de vida + notificações). ✅ (53 testes novos; suíte 99/99)
+- **Sprint 4**: Fluxo B. ← *você está aqui*
 - **Sprint 5**: Contratos + avaliações com regra de visibilidade.
 - **Sprint 6**: Notificações in-app + dashboard admin.
 - **Sprint 7+**: Migração opcional pra Supabase Auth, matching com IA, moderação, pagamento, mobile.
