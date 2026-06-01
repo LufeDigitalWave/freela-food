@@ -74,6 +74,18 @@ class ApplicationRepository:
         await self._session.refresh(app_)
         return app_
 
+    async def list_pending_for_job_except(
+        self, *, job_posting_id: uuid.UUID, except_id: uuid.UUID
+    ) -> list[Application]:
+        result = await self._session.execute(
+            select(Application).where(
+                Application.job_posting_id == job_posting_id,
+                Application.status == "pending",
+                Application.id != except_id,
+            )
+        )
+        return list(result.scalars().all())
+
     async def list_for_freelancer(
         self,
         *,

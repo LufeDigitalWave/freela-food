@@ -126,3 +126,18 @@ async def withdraw_application(
     return await ApplicationService(session).withdraw(
         user_id=user_id, app_id=application_id
     )
+
+
+@router.post(
+    "/applications/{application_id}/accept",
+    response_model=ApplicationRead,
+    summary="Estabelecimento aceita uma candidatura (cria contrato)",
+)
+async def accept_application(
+    application_id: uuid.UUID,
+    user_id: UserIdDep,
+    session: SessionDep,
+) -> ApplicationRead:
+    return await ApplicationService(session).accept(
+        user_id=user_id, app_id=application_id
+    )

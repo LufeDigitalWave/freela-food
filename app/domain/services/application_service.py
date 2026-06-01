@@ -4,20 +4,25 @@ Métodos adicionais (list, accept, reject, withdraw) entram em tasks subsequente
 """
 
 import uuid
+from datetime import UTC, datetime
 
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
     ApplicationNotPending,
     DuplicateApplication,
+    FreelancerOverlap,
     JobNotOpen,
     NotFoundError,
     PermissionDenied,
     ProfileRequired,
     SelfApplicationForbidden,
 )
+from app.domain.models.job_posting import JobPosting
 from app.domain.repositories.application_repository import ApplicationRepository
+from app.domain.repositories.contract_repository import ContractRepository
 from app.domain.repositories.job_repository import JobRepository
 from app.domain.repositories.profile_repository import ProfileRepository
 from app.domain.schemas.application import (
@@ -180,6 +185,101 @@ class ApplicationService:
             entity="application",
             entity_id=app_.id,
         )
+        await self._session.commit()
+        return ApplicationRead.model_validate(app_)
+
+    async def accept(
+        self, *, user_id: uuid.UUID, app_id: uuid.UUID
+    ) -> ApplicationRead:
+        contracts_repo = ContractRepository(self._session)
+
+        app_ = await self._repo.get_by_id(app_id)
+        if app_ is None:
+            raise NotFoundError("Candidatura não encontrada")
+
+        job = await self._jobs.get_by_id(app_.job_posting_id)
+        if job is None:
+            raise NotFoundError("Vaga não encontrada")
+        if job.establishment_id != user_id:
+            raise PermissionDenied()
+        if app_.status != "pending":
+            raise ApplicationNotPending()
+        if job.status != "open":
+            raise JobNotOpen()
+
+        # Overlap check — freelancer não pode ter contrato sobreposto
+        has = await contracts_repo.has_overlap(
+            freelancer_id=app_.freelancer_id,
+            start_at=job.start_at,
+            end_at=job.end_at,
+        )
+        if has:
+            raise FreelancerOverlap()
+
+        now = datetime.now(UTC)
+
+        # 1) Marca esta application como accepted
+        app_ = await self._repo.update_status(
+            app_, new_status="accepted", decided_at=now
+        )
+
+        # 2) Cascade-reject das demais pending da mesma vaga
+        pending_others = await self._repo.list_pending_for_job_except(
+            job_posting_id=job.id, except_id=app_.id
+        )
+        for other in pending_others:
+            await self._repo.update_status(
+                other, new_status="rejected", decided_at=now
+            )
+
+        # 3) Job → filled
+        await self._session.execute(
+            update(JobPosting)
+            .where(JobPosting.id == job.id)
+            .values(status="filled", updated_at=now)
+        )
+
+        # 4) Cria ServiceContract
+        contract = await contracts_repo.create(
+            application_id=app_.id,
+            job_posting_id=job.id,
+            freelancer_id=app_.freelancer_id,
+            establishment_id=job.establishment_id,
+            start_at=job.start_at,
+            end_at=job.end_at,
+            agreed_hourly_rate=job.hourly_rate,
+            agreed_total_pay=job.total_pay,
+        )
+
+        await write_audit_log(
+            self._session,
+            actor_id=user_id,
+            action="accept",
+            entity="application",
+            entity_id=app_.id,
+            diff={"contract_id": str(contract.id)},
+        )
+
+        # 5) Notifications
+        await self._notifications.emit(
+            user_id=app_.freelancer_id,
+            type="application.accepted",
+            payload={
+                "application_id": str(app_.id),
+                "job_posting_id": str(job.id),
+                "contract_id": str(contract.id),
+            },
+        )
+        for other in pending_others:
+            await self._notifications.emit(
+                user_id=other.freelancer_id,
+                type="application.rejected",
+                payload={
+                    "application_id": str(other.id),
+                    "job_posting_id": str(job.id),
+                },
+            )
+
         await self._session.commit()
         return ApplicationRead.model_validate(app_)
 
