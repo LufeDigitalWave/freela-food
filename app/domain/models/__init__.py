@@ -6,6 +6,7 @@ from app.domain.models.base import Base
 from app.domain.models.establishment_profile import EstablishmentProfile
 from app.domain.models.freelancer_profile import FreelancerProfile
 from app.domain.models.freelancer_skill import FreelancerSkill
+from app.domain.models.invitation import Invitation
 from app.domain.models.job_posting import JobPosting
 from app.domain.models.notification import Notification
 from app.domain.models.service_contract import ServiceContract
@@ -19,6 +20,7 @@ __all__ = [
     "EstablishmentProfile",
     "FreelancerProfile",
     "FreelancerSkill",
+    "Invitation",
     "JobPosting",
     "Notification",
     "ServiceContract",

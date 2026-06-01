@@ -43,17 +43,28 @@ class ServiceContract(Base, UUIDPKMixin, TimestampMixin):
             "cancel_reason IS NULL OR length(cancel_reason) <= 1000",
             name="service_contracts_reason_length_check",
         ),
+        UniqueConstraint("invitation_id", name="uq_service_contracts_invitation"),
+        CheckConstraint(
+            "(application_id IS NOT NULL AND invitation_id IS NULL) "
+            "OR (application_id IS NULL AND invitation_id IS NOT NULL)",
+            name="service_contracts_origin_check",
+        ),
     )
 
-    application_id: Mapped[uuid.UUID] = mapped_column(
+    application_id: Mapped[uuid.UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("applications.id"),
-        nullable=False,
+        nullable=True,
     )
-    job_posting_id: Mapped[uuid.UUID] = mapped_column(
+    invitation_id: Mapped[uuid.UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("invitations.id"),
+        nullable=True,
+    )
+    job_posting_id: Mapped[uuid.UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
         ForeignKey("job_postings.id"),
-        nullable=False,
+        nullable=True,
     )
     freelancer_id: Mapped[uuid.UUID] = mapped_column(
         PG_UUID(as_uuid=True),
