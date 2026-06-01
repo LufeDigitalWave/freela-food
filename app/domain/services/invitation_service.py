@@ -11,10 +11,12 @@ from app.core.exceptions import (
     EstablishmentProfileRequired,
     InvalidInvitationTarget,
     InvalidInvitationWindow,
+    NotFoundError,
+    PermissionDenied,
 )
 from app.domain.repositories.invitation_repository import InvitationRepository
 from app.domain.repositories.profile_repository import ProfileRepository
-from app.domain.schemas.invitation import InvitationCreate, InvitationRead
+from app.domain.schemas.invitation import InvitationCreate, InvitationList, InvitationRead
 from app.domain.services.notification_service import NotificationService
 from app.utils.audit import write_audit_log
 
@@ -80,4 +82,42 @@ class InvitationService:
             },
         )
         await self._session.commit()
+        return InvitationRead.model_validate(inv)
+
+    async def list_mine(
+        self,
+        *,
+        user_id: uuid.UUID,
+        status_filter: str | None,
+        page: int,
+        page_size: int,
+    ) -> InvitationList:
+        # Determina papel: estabelecimento vê enviados; freelancer vê recebidos
+        as_role = (
+            "establishment"
+            if await self._profiles.get_establishment(user_id) is not None
+            else "freelancer"
+        )
+        items, total = await self._repo.list_for_user(
+            user_id=user_id,
+            as_role=as_role,
+            status_filter=status_filter,
+            page=page,
+            page_size=page_size,
+        )
+        return InvitationList(
+            items=[InvitationRead.model_validate(i) for i in items],
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
+
+    async def get_by_id(
+        self, *, user_id: uuid.UUID, invitation_id: uuid.UUID
+    ) -> InvitationRead:
+        inv = await self._repo.get_by_id(invitation_id)
+        if inv is None:
+            raise NotFoundError("Convite não encontrado")
+        if user_id not in (inv.establishment_id, inv.freelancer_id):
+            raise PermissionDenied()
         return InvitationRead.model_validate(inv)

@@ -128,3 +128,95 @@ async def test_create_duplicate_overlapping(client: AsyncClient) -> None:
     assert first.status_code == 201
     second = await client.post("/v1/invitations", headers=headers, json=payload)
     assert second.status_code == 409
+
+
+async def test_list_establishment_sees_sent(client: AsyncClient) -> None:
+    s = await _seed_pair()
+    est_headers = await auth_header_for(client, str(s["est_email"]), PWD)
+    start, end = _future_window()
+    created = await client.post(
+        "/v1/invitations",
+        headers=est_headers,
+        json={
+            "freelancer_id": str(s["fl_id"]),
+            "skill_category_id": str(s["skill_id"]),
+            "start_at": start,
+            "end_at": end,
+        },
+    )
+    inv_id = created.json()["id"]
+    resp = await client.get("/v1/invitations", headers=est_headers)
+    ids = {item["id"] for item in resp.json()["items"]}
+    assert inv_id in ids
+
+
+async def test_list_freelancer_sees_received(client: AsyncClient) -> None:
+    s = await _seed_pair()
+    est_headers = await auth_header_for(client, str(s["est_email"]), PWD)
+    fl_headers = await auth_header_for(client, str(s["fl_email"]), PWD)
+    start, end = _future_window()
+    created = await client.post(
+        "/v1/invitations",
+        headers=est_headers,
+        json={
+            "freelancer_id": str(s["fl_id"]),
+            "skill_category_id": str(s["skill_id"]),
+            "start_at": start,
+            "end_at": end,
+        },
+    )
+    inv_id = created.json()["id"]
+    resp = await client.get("/v1/invitations", headers=fl_headers)
+    ids = {item["id"] for item in resp.json()["items"]}
+    assert inv_id in ids
+
+
+async def test_get_invitation_by_party(client: AsyncClient) -> None:
+    s = await _seed_pair()
+    est_headers = await auth_header_for(client, str(s["est_email"]), PWD)
+    start, end = _future_window()
+    created = await client.post(
+        "/v1/invitations",
+        headers=est_headers,
+        json={
+            "freelancer_id": str(s["fl_id"]),
+            "skill_category_id": str(s["skill_id"]),
+            "start_at": start,
+            "end_at": end,
+        },
+    )
+    inv_id = created.json()["id"]
+    resp = await client.get(f"/v1/invitations/{inv_id}", headers=est_headers)
+    assert resp.status_code == 200
+    assert resp.json()["id"] == inv_id
+
+
+async def test_get_invitation_forbidden_for_stranger(client: AsyncClient) -> None:
+    s = await _seed_pair()
+    est_headers = await auth_header_for(client, str(s["est_email"]), PWD)
+    start, end = _future_window()
+    created = await client.post(
+        "/v1/invitations",
+        headers=est_headers,
+        json={
+            "freelancer_id": str(s["fl_id"]),
+            "skill_category_id": str(s["skill_id"]),
+            "start_at": start,
+            "end_at": end,
+        },
+    )
+    inv_id = created.json()["id"]
+    other_email = f"est-{uuid.uuid4().hex[:8]}@test.com"
+    async with SessionLocal() as session:
+        await make_establishment(session, email=other_email)
+        await session.commit()
+    other_headers = await auth_header_for(client, other_email, PWD)
+    resp = await client.get(f"/v1/invitations/{inv_id}", headers=other_headers)
+    assert resp.status_code == 403
+
+
+async def test_get_invitation_not_found(client: AsyncClient) -> None:
+    s = await _seed_pair()
+    headers = await auth_header_for(client, str(s["est_email"]), PWD)
+    resp = await client.get(f"/v1/invitations/{uuid.uuid4()}", headers=headers)
+    assert resp.status_code == 404
