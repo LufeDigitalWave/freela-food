@@ -40,16 +40,16 @@ Carteira interna / saldo; contratos formais (só registro do acordo).
 | Framework API | FastAPI |
 | Validação | Pydantic v2 |
 | ORM / Migrations | SQLAlchemy 2.x async + **Alembic** (única fonte de verdade do schema) |
-| Banco | **Postgres 15 + PostGIS** rodando na VPS (Easypanel, `93.127.211.7:5435`) |
+| Banco | **Postgres 15 + PostGIS** |
 | Auth | **Custom JWT HS256** (PyJWT) + bcrypt via `passlib[bcrypt]`. Tabela `users` própria. |
 | Storage | **Deferido** — entra na Sprint 1+ quando precisar upload (provavelmente S3-compatible). |
-| Cache / Filas | Redis 7 na VPS (Easypanel, `93.127.211.7:6380`) |
+| Cache / Filas | Redis 7 |
 | Workers | **ARQ** (async-native, Redis-backed) |
 | Testes | Pytest + pytest-asyncio + httpx |
 | Lint/Format | Ruff + Black + mypy (strict) |
 | Pre-commit | ruff + black + mypy + check-yaml |
 | Containerização | Docker + docker-compose (pra deploy futuro, não usado em dev local) |
-| Deploy alvo | VPS (Easypanel) ou Fly.io |
+| Deploy alvo | Docker Compose / VPS |
 | Observabilidade | structlog (com filtro PII) + Sentry |
 
 ### Decisões registradas (não revisitar sem ADR)

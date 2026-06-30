@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     # LGPD: grace period entre soft-delete e purge definitivo
     delete_grace_period_days: int = Field(default=30, ge=1)
 
+    # Fluxo B: validade default de um convite (limitada também pelo start_at)
+    invitation_ttl_hours: int = Field(default=72, ge=1)
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_csv(cls, v: str | list[str]) -> list[str]:

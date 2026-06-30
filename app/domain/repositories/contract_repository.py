@@ -17,17 +17,19 @@ class ContractRepository:
     async def create(
         self,
         *,
-        application_id: uuid.UUID,
-        job_posting_id: uuid.UUID,
         freelancer_id: uuid.UUID,
         establishment_id: uuid.UUID,
         start_at: datetime,
         end_at: datetime,
         agreed_hourly_rate: Decimal | None,
         agreed_total_pay: Decimal | None,
+        application_id: uuid.UUID | None = None,
+        invitation_id: uuid.UUID | None = None,
+        job_posting_id: uuid.UUID | None = None,
     ) -> ServiceContract:
         contract = ServiceContract(
             application_id=application_id,
+            invitation_id=invitation_id,
             job_posting_id=job_posting_id,
             freelancer_id=freelancer_id,
             establishment_id=establishment_id,
