@@ -25,6 +25,7 @@ from app.domain.models.freelancer_profile import FreelancerProfile
 from app.domain.models.freelancer_skill import FreelancerSkill
 from app.domain.models.invitation import Invitation
 from app.domain.models.job_posting import JobPosting
+from app.domain.models.review import Review
 from app.domain.models.service_contract import ServiceContract
 from app.domain.models.skill_category import SkillCategory
 from app.domain.models.user import User
@@ -233,6 +234,64 @@ async def make_invitation(
     await session.flush()
     await session.refresh(inv)
     return inv
+
+
+async def make_completed_contract(
+    session: AsyncSession,
+    *,
+    freelancer_id: uuid.UUID,
+    establishment_id: uuid.UUID,
+    application_id: uuid.UUID | None = None,
+    invitation_id: uuid.UUID | None = None,
+    job_posting_id: uuid.UUID | None = None,
+    start_at: datetime | None = None,
+    end_at: datetime | None = None,
+) -> ServiceContract:
+    """Cria contrato já em status 'completed' (pra testes de review)."""
+    s = start_at or (datetime.now(UTC) - timedelta(days=3))
+    e = end_at or (s + timedelta(hours=4))
+    contract = ServiceContract(
+        application_id=application_id,
+        invitation_id=invitation_id,
+        job_posting_id=job_posting_id,
+        freelancer_id=freelancer_id,
+        establishment_id=establishment_id,
+        start_at=s,
+        end_at=e,
+        status="completed",
+        agreed_hourly_rate=Decimal("30.00"),
+    )
+    session.add(contract)
+    await session.flush()
+    await session.refresh(contract)
+    return contract
+
+
+async def make_review(
+    session: AsyncSession,
+    *,
+    contract_id: uuid.UUID,
+    reviewer_id: uuid.UUID,
+    reviewee_id: uuid.UUID,
+    stars: int = 4,
+    comment: str | None = None,
+    visible_at: datetime | None = None,
+    created_at: datetime | None = None,
+) -> Review:
+    """Cria review direto no banco (pra testes de listagem/visibilidade)."""
+    review = Review(
+        contract_id=contract_id,
+        reviewer_id=reviewer_id,
+        reviewee_id=reviewee_id,
+        stars=stars,
+        comment=comment,
+        visible_at=visible_at,
+        created_at=created_at or datetime.now(UTC),
+    )
+    session.add(review)
+    await session.flush()
+    await session.refresh(review)
+    return review
 
 
 async def auth_header_for(

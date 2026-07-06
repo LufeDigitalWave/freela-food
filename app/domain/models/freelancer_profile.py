@@ -1,9 +1,10 @@
 """Perfil de freelancer — 1:1 com User."""
 
 import uuid
+from decimal import Decimal
 
 from geoalchemy2 import Geography, WKBElement
-from sqlalchemy import ForeignKey, Integer, LargeBinary, String, Text
+from sqlalchemy import ForeignKey, Integer, LargeBinary, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -35,5 +36,13 @@ class FreelancerProfile(Base, TimestampMixin, SoftDeleteMixin):
         Integer, nullable=False, default=0, server_default="0"
     )
     completed_contracts_count: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default="0"
+    )
+
+    # Rating agregado (Sprint 5)
+    average_rating: Mapped[Decimal | None] = mapped_column(
+        Numeric(3, 2), nullable=True
+    )
+    total_reviews: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )

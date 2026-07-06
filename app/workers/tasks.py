@@ -11,6 +11,8 @@ from app.core.logging import get_logger
 from app.core.storage import delete_avatar
 from app.domain.models.freelancer_profile import FreelancerProfile
 from app.domain.models.job_posting import JobPosting
+from app.domain.models.notification import Notification
+from app.domain.models.review import Review
 from app.domain.models.service_contract import ServiceContract
 from app.domain.models.user import User
 
@@ -111,3 +113,43 @@ async def advance_contract_lifecycle(_ctx: dict[str, Any]) -> dict[str, int]:
 
     log.info("contract_lifecycle.tick", started=started, completed=len(completed_ids))
     return {"started": started, "completed": len(completed_ids)}
+
+
+async def reveal_reviews(_ctx: dict[str, Any]) -> dict[str, int]:
+    """Cron 5min — revela reviews órfãs após 7 dias (anti-retaliação).
+
+    Idempotente. Marca visible_at = now() em reviews cuja outra parte nunca
+    avaliou dentro de 7 dias. Emite notificação review.revealed ao autor.
+    """
+    log = get_logger("arq.review_lifecycle")
+    revealed = 0
+    cutoff = datetime.now(UTC) - timedelta(days=7)
+
+    async with SessionLocal() as session, session.begin():
+        result = await session.execute(
+            select(Review).where(
+                Review.visible_at.is_(None),
+                Review.created_at <= cutoff,
+            )
+        )
+        orphan_reviews = list(result.scalars().all())
+
+        now = datetime.now(UTC)
+        for review in orphan_reviews:
+            review.visible_at = now
+            # Notificar autor que review está pública
+            session.add(
+                Notification(
+                    user_id=review.reviewer_id,
+                    type="review.revealed",
+                    payload={
+                        "contract_id": str(review.contract_id),
+                        "review_id": str(review.id),
+                    },
+                    created_at=now,
+                )
+            )
+            revealed += 1
+
+    log.info("review_lifecycle.tick", revealed=revealed)
+    return {"revealed": revealed}
