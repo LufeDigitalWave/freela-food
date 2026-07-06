@@ -236,7 +236,7 @@ uv run arq app.workers.arq_worker.WorkerSettings
 - **Sprint 1**: Perfis (freela + estabelecimento) + upload de foto (S3-compatible) + LGPD endpoints (`/me/export`, `DELETE /me`). ✅
 - **Sprint 2**: CRUD de vagas + busca com filtros + geolocalização (PostGIS `ST_DWithin`). ✅
 - **Sprint 3**: Fluxo A end-to-end (candidatura → aceite transacional → contrato + cron de ciclo de vida + notificações). ✅ (53 testes novos; suíte 99/99)
-- **Sprint 4**: Fluxo B. ← *você está aqui*
-- **Sprint 5**: Contratos + avaliações com regra de visibilidade.
-- **Sprint 6**: Notificações in-app + dashboard admin.
+- **Sprint 4**: Fluxo B end-to-end (busca freelancers por proximidade → convite direto → aceite → contrato). ✅ (29 testes novos; suíte 128/128)
+- **Sprint 5**: Avaliações mútuas + regra de visibilidade anti-retaliação + rating agregado + cron reveal. ✅ (34 testes novos; suíte 162/162)
+- **Sprint 6**: Notificações in-app + dashboard admin. ← *próxima*
 - **Sprint 7+**: Migração opcional pra Supabase Auth, matching com IA, moderação, pagamento, mobile.

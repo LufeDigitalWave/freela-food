@@ -9,6 +9,7 @@ from app.domain.models.freelancer_skill import FreelancerSkill
 from app.domain.models.invitation import Invitation
 from app.domain.models.job_posting import JobPosting
 from app.domain.models.notification import Notification
+from app.domain.models.review import Review
 from app.domain.models.service_contract import ServiceContract
 from app.domain.models.skill_category import SkillCategory
 from app.domain.models.user import User
@@ -23,6 +24,7 @@ __all__ = [
     "Invitation",
     "JobPosting",
     "Notification",
+    "Review",
     "ServiceContract",
     "SkillCategory",
     "User",

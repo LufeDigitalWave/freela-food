@@ -11,8 +11,9 @@ class ServiceContractRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    application_id: uuid.UUID
-    job_posting_id: uuid.UUID
+    application_id: uuid.UUID | None
+    job_posting_id: uuid.UUID | None
+    invitation_id: uuid.UUID | None = None
     freelancer_id: uuid.UUID
     establishment_id: uuid.UUID
     start_at: datetime

@@ -103,3 +103,18 @@ class InvitationNotPending(ConflictError):
 
 class InvitationExpired(ConflictError):
     detail = "Convite expirou"
+
+
+# ── Sprint 5 (Reviews) ───────────────────────────────────────────────────────
+
+
+class ContractNotCompleted(ConflictError):
+    detail = "Contrato precisa estar completed para avaliação"
+
+
+class ReviewWindowClosed(ConflictError):
+    detail = "Janela de avaliação encerrada (30 dias)"
+
+
+class DuplicateReview(ConflictError):
+    detail = "Você já avaliou este contrato"

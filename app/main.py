@@ -10,12 +10,14 @@ from fastapi.responses import JSONResponse, Response
 from app.api.v1.applications.router import router as applications_router
 from app.api.v1.auth.router import router as auth_router
 from app.api.v1.contracts.router import router as contracts_router
+from app.api.v1.establishments.router import router as establishments_router
 from app.api.v1.freelancers.router import router as freelancers_router
 from app.api.v1.health.router import router as health_router
 from app.api.v1.invitations.router import router as invitations_router
 from app.api.v1.jobs.router import router as jobs_router
 from app.api.v1.me.router import router as me_router
 from app.api.v1.notifications.router import router as notifications_router
+from app.api.v1.reviews.router import router as reviews_router
 from app.core.config import get_settings
 from app.core.exceptions import DomainError
 from app.core.logging import configure_logging, get_logger
@@ -82,6 +84,8 @@ def create_app() -> FastAPI:
     app.include_router(contracts_router, prefix="/v1")
     app.include_router(freelancers_router, prefix="/v1")
     app.include_router(invitations_router, prefix="/v1")
+    app.include_router(reviews_router, prefix="/v1")
+    app.include_router(establishments_router, prefix="/v1")
 
     return app
 
