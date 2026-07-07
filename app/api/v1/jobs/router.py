@@ -14,7 +14,9 @@ from app.domain.schemas.job import (
     JobPostingUpdate,
     JobSearchResponse,
 )
+from app.domain.schemas.matching import MatchList
 from app.domain.services.job_service import JobService
+from app.domain.services.matching_service import MatchingService
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -115,3 +117,25 @@ async def delete_job(
     session: SessionDep,
 ) -> None:
     await JobService(session).soft_delete(user_id, job_id)
+
+
+@router.get(
+    "/{job_id}/matches",
+    response_model=MatchList,
+    summary="Freelancers ranqueados por compatibilidade com a vaga (matching engine)",
+)
+async def get_job_matches(
+    job_id: uuid.UUID,
+    user_id: UserIdDep,
+    session: SessionDep,
+    radius_km: Annotated[float, Query(gt=0, le=500)] = 50.0,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> MatchList:
+    return await MatchingService(session).matches_for_job(
+        user_id=user_id,
+        job_id=job_id,
+        radius_km=radius_km,
+        page=page,
+        page_size=page_size,
+    )
