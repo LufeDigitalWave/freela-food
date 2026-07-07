@@ -55,3 +55,13 @@ class Review(Base, UUIDPKMixin):
         nullable=False,
         server_default=text("now()"),
     )
+
+    # Moderação (Sprint 8)
+    hidden_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    hidden_by: Mapped[uuid.UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        nullable=True,
+    )

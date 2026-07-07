@@ -25,6 +25,7 @@ from app.domain.models.freelancer_profile import FreelancerProfile
 from app.domain.models.freelancer_skill import FreelancerSkill
 from app.domain.models.invitation import Invitation
 from app.domain.models.job_posting import JobPosting
+from app.domain.models.report import Report
 from app.domain.models.review import Review
 from app.domain.models.service_contract import ServiceContract
 from app.domain.models.skill_category import SkillCategory
@@ -302,6 +303,32 @@ async def make_review(
     await session.flush()
     await session.refresh(review)
     return review
+
+
+async def make_report(
+    session: AsyncSession,
+    *,
+    reporter_id: uuid.UUID,
+    target_type: str = "review",
+    target_id: uuid.UUID | None = None,
+    reason: str = "spam",
+    status: str = "pending",
+    description: str | None = None,
+) -> Report:
+    """Cria report direto no banco."""
+    report = Report(
+        reporter_id=reporter_id,
+        target_type=target_type,
+        target_id=target_id or uuid.uuid4(),
+        reason=reason,
+        status=status,
+        description=description,
+        created_at=datetime.now(UTC),
+    )
+    session.add(report)
+    await session.flush()
+    await session.refresh(report)
+    return report
 
 
 async def auth_header_for(

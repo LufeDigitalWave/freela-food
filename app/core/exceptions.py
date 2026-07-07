@@ -118,3 +118,26 @@ class ReviewWindowClosed(ConflictError):
 
 class DuplicateReview(ConflictError):
     detail = "Você já avaliou este contrato"
+
+
+# ── Sprint 8 (Moderação) ─────────────────────────────────────────────────────
+
+
+class SelfReportForbidden(PermissionDenied):
+    detail = "Não é possível reportar a si mesmo"
+
+
+class DuplicateReport(ConflictError):
+    detail = "Já existe denúncia pendente para este alvo"
+
+
+class ReportNotPending(ConflictError):
+    detail = "Denúncia já foi resolvida"
+
+
+class ReviewAlreadyHidden(ConflictError):
+    detail = "Review já está oculta"
+
+
+class ReviewNotHidden(ConflictError):
+    detail = "Review não está oculta"
