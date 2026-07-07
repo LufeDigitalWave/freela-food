@@ -7,6 +7,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
+from app.api.v1.admin.router import router as admin_router
 from app.api.v1.applications.router import router as applications_router
 from app.api.v1.auth.router import router as auth_router
 from app.api.v1.contracts.router import router as contracts_router
@@ -86,6 +87,7 @@ def create_app() -> FastAPI:
     app.include_router(invitations_router, prefix="/v1")
     app.include_router(reviews_router, prefix="/v1")
     app.include_router(establishments_router, prefix="/v1")
+    app.include_router(admin_router, prefix="/v1")
 
     return app
 

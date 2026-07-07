@@ -4,7 +4,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any, cast
 
-from sqlalchemy import CursorResult, func, select, update
+from sqlalchemy import CursorResult, delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.domain.models.notification import Notification
@@ -91,3 +91,20 @@ class NotificationRepository:
         )
         await self._session.flush()
         return int(result.rowcount or 0)
+
+    async def delete(self, notif: Notification) -> None:
+        await self._session.execute(
+            delete(Notification).where(Notification.id == notif.id)
+        )
+        await self._session.flush()
+
+    async def count_unread(self, user_id: uuid.UUID) -> int:
+        result = await self._session.scalar(
+            select(func.count())
+            .select_from(Notification)
+            .where(
+                Notification.user_id == user_id,
+                Notification.read_at.is_(None),
+            )
+        )
+        return int(result or 0)

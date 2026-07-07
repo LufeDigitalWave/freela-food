@@ -12,6 +12,7 @@ from app.domain.schemas.notification import (
     NotificationList,
     NotificationRead,
     ReadAllResponse,
+    UnreadCountResponse,
 )
 from app.domain.services.notification_service import NotificationService
 
@@ -67,3 +68,29 @@ async def mark_all_read(
     session: SessionDep,
 ) -> ReadAllResponse:
     return await NotificationService(session).mark_all_read(user_id=user_id)
+
+
+@router.delete(
+    "/notifications/{notif_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Deleta uma notificação (ownership check)",
+)
+async def delete_notification(
+    notif_id: uuid.UUID,
+    user_id: UserIdDep,
+    session: SessionDep,
+) -> None:
+    await NotificationService(session).delete(user_id=user_id, notif_id=notif_id)
+    await session.commit()
+
+
+@router.get(
+    "/me/notifications/count",
+    response_model=UnreadCountResponse,
+    summary="Contagem de notificações não-lidas (pra badge/polling)",
+)
+async def count_unread(
+    user_id: UserIdDep,
+    session: SessionDep,
+) -> UnreadCountResponse:
+    return await NotificationService(session).count_unread(user_id=user_id)
