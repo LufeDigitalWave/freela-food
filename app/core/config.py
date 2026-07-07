@@ -47,6 +47,14 @@ class Settings(BaseSettings):
     # Fluxo B: validade default de um convite (limitada também pelo start_at)
     invitation_ttl_hours: int = Field(default=72, ge=1)
 
+    # Matching engine — pesos do scoring (somam ~1.0)
+    match_weight_proximity: float = Field(default=0.25, ge=0, le=1)
+    match_weight_skill: float = Field(default=0.20, ge=0, le=1)
+    match_weight_rating: float = Field(default=0.20, ge=0, le=1)
+    match_weight_reliability: float = Field(default=0.15, ge=0, le=1)
+    match_weight_experience: float = Field(default=0.10, ge=0, le=1)
+    match_weight_repeat_hire: float = Field(default=0.10, ge=0, le=1)
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def _split_csv(cls, v: str | list[str]) -> list[str]:
