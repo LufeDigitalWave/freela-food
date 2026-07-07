@@ -27,3 +27,7 @@ class NotificationList(BaseModel):
 
 class ReadAllResponse(BaseModel):
     updated: int
+
+
+class UnreadCountResponse(BaseModel):
+    unread: int

@@ -9,6 +9,7 @@ import bcrypt
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from sqlalchemy import select
 
 from app.core.config import Settings, get_settings
 
@@ -96,3 +97,27 @@ def get_current_user_id(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token sem subject válido",
         ) from e
+
+
+async def require_admin(
+    user_id: Annotated[uuid.UUID, Depends(get_current_user_id)],
+) -> uuid.UUID:
+    """Dependency que valida role == 'admin'. Retorna user_id se autorizado.
+
+    Usa SessionLocal direto pra evitar dependência circular com get_session.
+    Eficiente: single-column query por PK.
+    """
+    from app.core.database import SessionLocal
+    from app.domain.models.user import User
+
+    async with SessionLocal() as session:
+        result = await session.execute(
+            select(User.role).where(User.id == user_id)
+        )
+        role = result.scalar_one_or_none()
+    if role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso restrito a administradores",
+        )
+    return user_id

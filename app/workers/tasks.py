@@ -65,6 +65,7 @@ async def advance_contract_lifecycle(_ctx: dict[str, Any]) -> dict[str, int]:
     log = get_logger("arq.contract_lifecycle")
     started = 0
     completed_ids: list[tuple[str, str]] = []
+    now = datetime.now(UTC)
     async with SessionLocal() as session, session.begin():
         # scheduled → in_progress (start_at <= now < end_at)
         r1 = await session.execute(
@@ -75,9 +76,26 @@ async def advance_contract_lifecycle(_ctx: dict[str, Any]) -> dict[str, int]:
                 ServiceContract.end_at > func.now(),
             )
             .values(status="in_progress", updated_at=func.now())
-            .returning(ServiceContract.id)
+            .returning(
+                ServiceContract.id,
+                ServiceContract.freelancer_id,
+                ServiceContract.establishment_id,
+            )
         )
-        started = len(r1.all())
+        started_rows = r1.all()
+        started = len(started_rows)
+
+        # Notificar ambas partes: contract.started
+        for row in started_rows:
+            for uid in (row[1], row[2]):
+                session.add(
+                    Notification(
+                        user_id=uid,
+                        type="contract.started",
+                        payload={"contract_id": str(row[0])},
+                        created_at=now,
+                    )
+                )
 
         # qualquer scheduled/in_progress com end_at <= now → completed
         r2 = await session.execute(
@@ -91,9 +109,10 @@ async def advance_contract_lifecycle(_ctx: dict[str, Any]) -> dict[str, int]:
                 ServiceContract.id,
                 ServiceContract.freelancer_id,
                 ServiceContract.job_posting_id,
+                ServiceContract.establishment_id,
             )
         )
-        for row in r2.all():
+        for row in r2.all():  # type: ignore[assignment]
             completed_ids.append((str(row[0]), str(row[2])))
             # FreelancerProfile counter
             await session.execute(
@@ -110,6 +129,16 @@ async def advance_contract_lifecycle(_ctx: dict[str, Any]) -> dict[str, int]:
                 )
                 .values(status="completed", updated_at=func.now())
             )
+            # Notificar ambas partes: contract.completed
+            for uid in (row[1], row[3]):
+                session.add(
+                    Notification(
+                        user_id=uid,
+                        type="contract.completed",
+                        payload={"contract_id": str(row[0])},
+                        created_at=now,
+                    )
+                )
 
     log.info("contract_lifecycle.tick", started=started, completed=len(completed_ids))
     return {"started": started, "completed": len(completed_ids)}

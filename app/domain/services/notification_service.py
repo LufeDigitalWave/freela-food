@@ -12,6 +12,7 @@ from app.domain.schemas.notification import (
     NotificationList,
     NotificationRead,
     ReadAllResponse,
+    UnreadCountResponse,
 )
 
 
@@ -63,3 +64,17 @@ class NotificationService:
     async def mark_all_read(self, *, user_id: uuid.UUID) -> ReadAllResponse:
         n = await self._repo.mark_all_read(user_id)
         return ReadAllResponse(updated=n)
+
+    async def delete(
+        self, *, user_id: uuid.UUID, notif_id: uuid.UUID
+    ) -> None:
+        notif = await self._repo.get_by_id(notif_id)
+        if notif is None:
+            raise NotificationNotFound()
+        if notif.user_id != user_id:
+            raise PermissionDenied()
+        await self._repo.delete(notif)
+
+    async def count_unread(self, *, user_id: uuid.UUID) -> UnreadCountResponse:
+        n = await self._repo.count_unread(user_id)
+        return UnreadCountResponse(unread=n)

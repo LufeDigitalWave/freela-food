@@ -49,6 +49,16 @@ async def make_user(
     return user
 
 
+async def make_admin(
+    session: AsyncSession,
+    *,
+    email: str | None = None,
+    password: str = "Senha123!",
+) -> User:
+    """Cria user com role='admin'."""
+    return await make_user(session, email=email, role="admin", password=password)
+
+
 async def make_freelancer(
     session: AsyncSession,
     *,
