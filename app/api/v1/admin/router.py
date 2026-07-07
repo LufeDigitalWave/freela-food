@@ -16,7 +16,9 @@ from app.domain.schemas.admin import (
     AuditLogList,
     PlatformStats,
 )
+from app.domain.schemas.report import ReportList, ReportRead, ResolveRequest
 from app.domain.services.admin_service import AdminService
+from app.domain.services.moderation_service import ModerationService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -126,4 +128,89 @@ async def list_audit_log(
         until=until,
         page=page,
         page_size=page_size,
+    )
+
+
+# ── Moderation (Sprint 8) ────────────────────────────────────────────────────
+
+
+@router.get(
+    "/reports",
+    response_model=ReportList,
+    summary="Fila de denúncias (filtros: status, target_type, reason)",
+)
+async def list_reports(
+    _admin_id: AdminIdDep,
+    session: SessionDep,
+    status: Annotated[str | None, Query()] = None,
+    target_type: Annotated[str | None, Query()] = None,
+    reason: Annotated[str | None, Query()] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> ReportList:
+    return await ModerationService(session).list_reports(
+        status=status,
+        target_type=target_type,
+        reason=reason,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get(
+    "/reports/{report_id}",
+    response_model=ReportRead,
+    summary="Detalhe de uma denúncia",
+)
+async def get_report(
+    report_id: uuid.UUID,
+    _admin_id: AdminIdDep,
+    session: SessionDep,
+) -> ReportRead:
+    return await ModerationService(session).get_report(report_id=report_id)
+
+
+@router.post(
+    "/reports/{report_id}/resolve",
+    response_model=ReportRead,
+    summary="Resolver denúncia (action_taken ou dismissed)",
+)
+async def resolve_report(
+    report_id: uuid.UUID,
+    payload: ResolveRequest,
+    admin_id: AdminIdDep,
+    session: SessionDep,
+) -> ReportRead:
+    return await ModerationService(session).resolve_report(
+        admin_id=admin_id, report_id=report_id, payload=payload
+    )
+
+
+@router.post(
+    "/reviews/{review_id}/hide",
+    status_code=204,
+    summary="Esconder review (admin)",
+)
+async def hide_review(
+    review_id: uuid.UUID,
+    admin_id: AdminIdDep,
+    session: SessionDep,
+) -> None:
+    await ModerationService(session).hide_review(
+        admin_id=admin_id, review_id=review_id
+    )
+
+
+@router.post(
+    "/reviews/{review_id}/unhide",
+    status_code=204,
+    summary="Restaurar review oculta (admin)",
+)
+async def unhide_review(
+    review_id: uuid.UUID,
+    admin_id: AdminIdDep,
+    session: SessionDep,
+) -> None:
+    await ModerationService(session).unhide_review(
+        admin_id=admin_id, review_id=review_id
     )

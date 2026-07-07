@@ -18,6 +18,7 @@ from app.api.v1.invitations.router import router as invitations_router
 from app.api.v1.jobs.router import router as jobs_router
 from app.api.v1.me.router import router as me_router
 from app.api.v1.notifications.router import router as notifications_router
+from app.api.v1.reports.router import router as reports_router
 from app.api.v1.reviews.router import router as reviews_router
 from app.core.config import get_settings
 from app.core.exceptions import DomainError
@@ -88,6 +89,7 @@ def create_app() -> FastAPI:
     app.include_router(reviews_router, prefix="/v1")
     app.include_router(establishments_router, prefix="/v1")
     app.include_router(admin_router, prefix="/v1")
+    app.include_router(reports_router, prefix="/v1")
 
     return app
 

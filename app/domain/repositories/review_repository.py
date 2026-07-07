@@ -62,11 +62,12 @@ class ReviewRepository:
     async def list_visible_for_user(
         self, reviewee_id: uuid.UUID, *, page: int, page_size: int
     ) -> tuple[list[Review], int]:
-        """Reviews visíveis recebidas por um user (endpoint público)."""
+        """Reviews visíveis recebidas por um user (endpoint público). Exclui hidden."""
         base = select(Review).where(
             Review.reviewee_id == reviewee_id,
             Review.visible_at.is_not(None),
             Review.visible_at <= datetime.now(UTC),
+            Review.hidden_at.is_(None),
         )
         total = await self._session.scalar(
             select(func.count()).select_from(base.subquery())
@@ -102,13 +103,14 @@ class ReviewRepository:
         return list(result.scalars().all())
 
     async def get_distribution(self, reviewee_id: uuid.UUID) -> dict[int, int]:
-        """COUNT de reviews visíveis agrupadas por stars."""
+        """COUNT de reviews visíveis agrupadas por stars. Exclui hidden."""
         result = await self._session.execute(
             select(Review.stars, func.count())
             .where(
                 Review.reviewee_id == reviewee_id,
                 Review.visible_at.is_not(None),
                 Review.visible_at <= datetime.now(UTC),
+                Review.hidden_at.is_(None),
             )
             .group_by(Review.stars)
         )
