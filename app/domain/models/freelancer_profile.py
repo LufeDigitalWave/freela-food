@@ -46,3 +46,6 @@ class FreelancerProfile(Base, TimestampMixin, SoftDeleteMixin):
     total_reviews: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )
+
+    # Pagamento (Sprint 9)
+    pix_key: Mapped[str | None] = mapped_column(String(100), nullable=True)
