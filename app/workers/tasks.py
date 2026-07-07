@@ -12,6 +12,7 @@ from app.core.storage import delete_avatar
 from app.domain.models.freelancer_profile import FreelancerProfile
 from app.domain.models.job_posting import JobPosting
 from app.domain.models.notification import Notification
+from app.domain.models.payment import Payment
 from app.domain.models.review import Review
 from app.domain.models.service_contract import ServiceContract
 from app.domain.models.user import User
@@ -136,6 +137,48 @@ async def advance_contract_lifecycle(_ctx: dict[str, Any]) -> dict[str, int]:
                         user_id=uid,
                         type="contract.completed",
                         payload={"contract_id": str(row[0])},
+                        created_at=now,
+                    )
+                )
+
+            # Criar payment pending (Sprint 9)
+            # Calcular amount a partir do contrato
+            contract_obj = await session.scalar(
+                select(ServiceContract).where(ServiceContract.id == row[0])
+            )
+            if contract_obj is not None:
+                from decimal import Decimal
+
+                if contract_obj.agreed_total_pay:
+                    pay_amount = contract_obj.agreed_total_pay
+                elif contract_obj.agreed_hourly_rate:
+                    hours = Decimal(
+                        str((contract_obj.end_at - contract_obj.start_at).total_seconds() / 3600)
+                    )
+                    pay_amount = (contract_obj.agreed_hourly_rate * hours).quantize(Decimal("0.01"))
+                else:
+                    pay_amount = Decimal("0.00")
+
+                # Buscar pix_key do freelancer
+                fl_pix: str | None = await session.scalar(
+                    select(FreelancerProfile.pix_key).where(
+                        FreelancerProfile.user_id == row[1]
+                    )
+                )
+                session.add(
+                    Payment(
+                        contract_id=row[0],
+                        amount=pay_amount,
+                        pix_key=fl_pix,
+                        created_at=now,
+                    )
+                )
+                # Notificar freelancer: payment pending
+                session.add(
+                    Notification(
+                        user_id=row[1],
+                        type="payment.pending",
+                        payload={"contract_id": str(row[0]), "amount": str(pay_amount)},
                         created_at=now,
                     )
                 )

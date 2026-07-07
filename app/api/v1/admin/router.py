@@ -16,9 +16,11 @@ from app.domain.schemas.admin import (
     AuditLogList,
     PlatformStats,
 )
+from app.domain.schemas.payment import PaymentList
 from app.domain.schemas.report import ReportList, ReportRead, ResolveRequest
 from app.domain.services.admin_service import AdminService
 from app.domain.services.moderation_service import ModerationService
+from app.domain.services.payment_service import PaymentService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -213,4 +215,24 @@ async def unhide_review(
 ) -> None:
     await ModerationService(session).unhide_review(
         admin_id=admin_id, review_id=review_id
+    )
+
+
+# ── Payments (Sprint 9) ──────────────────────────────────────────────────────
+
+
+@router.get(
+    "/payments",
+    response_model=PaymentList,
+    summary="Overview de pagamentos (filtro por status)",
+)
+async def list_payments_admin(
+    _admin_id: AdminIdDep,
+    session: SessionDep,
+    status: Annotated[str | None, Query()] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+) -> PaymentList:
+    return await PaymentService(session).list_all_admin(
+        status_filter=status, page=page, page_size=page_size
     )
