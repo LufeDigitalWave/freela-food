@@ -242,4 +242,4 @@ uv run arq app.workers.arq_worker.WorkerSettings
 - **Sprint 7**: Matching engine — scoring multi-fator de freelancers (proximity, skill, rating, reliability, experience, repeat-hire). ✅ (15 testes novos; suíte 195/195)
 - **Sprint 8**: Moderação — reports user-facing + admin moderation queue + hide/unhide reviews + notificações. ✅ (18 testes novos; suíte 213/213)
 - **Sprint 9**: Pagamento — registro + confirmação Pix manual + disputa + auto-create no lifecycle. ✅ (11 testes novos; suíte 224/224)
-- **Sprint 10+**: Migração opcional pra Supabase Auth, gateway Pix real, mobile.
+- **Sprint 10+**: Gateway Pix real (Mercado Pago/Asaas), refresh tokens, mobile.
