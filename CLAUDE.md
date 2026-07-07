@@ -240,4 +240,5 @@ uv run arq app.workers.arq_worker.WorkerSettings
 - **Sprint 5**: Avaliações mútuas + regra de visibilidade anti-retaliação + rating agregado + cron reveal. ✅ (34 testes novos; suíte 162/162)
 - **Sprint 6**: Notificações in-app (delete + count + emissões lifecycle) + dashboard admin (stats, users, audit-log). ✅ (18 testes novos; suíte 180/180)
 - **Sprint 7**: Matching engine — scoring multi-fator de freelancers (proximity, skill, rating, reliability, experience, repeat-hire). ✅ (15 testes novos; suíte 195/195)
-- **Sprint 8+**: Migração opcional pra Supabase Auth, moderação, pagamento, mobile.
+- **Sprint 8**: Moderação — reports user-facing + admin moderation queue + hide/unhide reviews + notificações. ✅ (18 testes novos; suíte 213/213)
+- **Sprint 9+**: Migração opcional pra Supabase Auth, pagamento (Pix/Stripe Connect), mobile.
