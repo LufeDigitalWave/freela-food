@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { MapPin, Clock, DollarSign } from "lucide-react";
+import { MapPin, Clock, DollarSign, Search } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,18 +14,38 @@ import type { JobSearchResponse } from "@/lib/types";
 
 export default function JobsPage() {
   const [jobs, setJobs] = useState<JobSearchResponse | null>(null);
-  const [lat, setLat] = useState("-23.55");
-  const [lng, setLng] = useState("-46.63");
+  const [address, setAddress] = useState("");
   const [radius, setRadius] = useState("10");
   const [loading, setLoading] = useState(false);
+  const [geocoding, setGeocoding] = useState(false);
+  const [locationName, setLocationName] = useState("");
 
-  const search = async () => {
+  const geocodeAndSearch = async () => {
+    if (!address.trim()) return;
+    setGeocoding(true);
     setLoading(true);
     try {
+      // Geocode via Nominatim (OpenStreetMap — gratuito)
+      const geoRes = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1&countrycodes=br`,
+        { headers: { "Accept-Language": "pt-BR" } }
+      );
+      const geoData = await geoRes.json();
+      if (!geoData.length) {
+        alert("Endereço não encontrado. Tente ser mais específico.");
+        setLoading(false);
+        setGeocoding(false);
+        return;
+      }
+      const { lat, lon, display_name } = geoData[0];
+      setLocationName(display_name);
+      setGeocoding(false);
+
+      // Buscar vagas
       const { data } = await api.get<JobSearchResponse>("/jobs/search", {
         params: {
           latitude: lat,
-          longitude: lng,
+          longitude: lon,
           radius_km: radius,
           only_open: true,
           future_only: true,
@@ -34,20 +54,35 @@ export default function JobsPage() {
       setJobs(data);
     } catch (err) {
       console.error(err);
+      alert("Erro ao buscar. Tente novamente.");
     } finally {
       setLoading(false);
+      setGeocoding(false);
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") geocodeAndSearch();
+  };
+
+  // Tentar geolocation do browser como sugestão
   useEffect(() => {
-    // Tentar geolocation do browser
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setLat(pos.coords.latitude.toFixed(4));
-          setLng(pos.coords.longitude.toFixed(4));
+        async (pos) => {
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`,
+              { headers: { "Accept-Language": "pt-BR" } }
+            );
+            const data = await res.json();
+            if (data.address) {
+              const parts = [data.address.suburb, data.address.city, data.address.state].filter(Boolean);
+              setAddress(parts.join(", "));
+            }
+          } catch {}
         },
-        () => {} // silenciar erro
+        () => {}
       );
     }
   }, []);
@@ -59,25 +94,41 @@ export default function JobsPage() {
       {/* Filtros */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="space-y-2">
-              <Label>Latitude</Label>
-              <Input value={lat} onChange={(e) => setLat(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Longitude</Label>
-              <Input value={lng} onChange={(e) => setLng(e.target.value)} />
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2 md:col-span-2">
+              <Label>Endereço, bairro, cidade ou CEP</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  placeholder="Ex: Vila Madalena, São Paulo"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Raio (km)</Label>
-              <Input value={radius} onChange={(e) => setRadius(e.target.value)} />
-            </div>
-            <div className="flex items-end">
-              <Button onClick={search} disabled={loading} className="w-full">
-                {loading ? "Buscando..." : "Buscar"}
-              </Button>
+              <div className="flex gap-2">
+                <Input
+                  value={radius}
+                  onChange={(e) => setRadius(e.target.value)}
+                  type="number"
+                  min="1"
+                  max="100"
+                />
+                <Button onClick={geocodeAndSearch} disabled={loading} className="shrink-0">
+                  {geocoding ? "Localizando..." : loading ? "Buscando..." : "Buscar"}
+                </Button>
+              </div>
             </div>
           </div>
+          {locationName && (
+            <p className="text-xs text-muted-foreground mt-2">
+              📍 {locationName}
+            </p>
+          )}
         </CardContent>
       </Card>
 
