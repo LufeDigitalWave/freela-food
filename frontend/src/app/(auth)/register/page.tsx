@@ -12,6 +12,7 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"freelancer" | "establishment">("freelancer");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -20,7 +21,7 @@ export default function RegisterPage() {
     setError("");
     setLoading(true);
     try {
-      await register(email, password, "freelancer");
+      await register(email, password, role);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
       setError(msg || "Erro ao cadastrar");
@@ -36,12 +37,16 @@ export default function RegisterPage() {
         style={{ background: "linear-gradient(145deg, #f59e0b 0%, #e85d2c 60%, #c2410c 100%)" }}>
         <div className="relative z-10 max-w-md text-white px-12">
           <div className="anim-in">
-            <span className="text-6xl mb-6 block">👨‍🍳</span>
+            <span className="text-6xl mb-6 block">{role === "freelancer" ? "👨‍🍳" : "🏪"}</span>
             <h1 className="text-4xl font-bold mb-4" style={{ fontFamily: "'Instrument Serif', serif" }}>
-              Comece a receber convites em minutos
+              {role === "freelancer"
+                ? "Comece a receber convites em minutos"
+                : "Encontre os melhores profissionais pra seu evento"}
             </h1>
             <p className="text-white/80 text-lg leading-relaxed">
-              Crie seu perfil, adicione suas habilidades e raio de atuação. Estabelecimentos vão encontrar você.
+              {role === "freelancer"
+                ? "Crie seu perfil, adicione suas habilidades e raio de atuação. Estabelecimentos vão encontrar você."
+                : "Publique vagas, busque freelancers por proximidade e gerencie contratos com facilidade."}
             </p>
           </div>
         </div>
@@ -58,10 +63,45 @@ export default function RegisterPage() {
               <span className="text-xl font-bold gradient-text">freela-food</span>
             </div>
             <h2 className="text-3xl font-bold text-foreground">Criar conta</h2>
-            <p className="text-muted-foreground mt-2">Cadastro grátis como freelancer</p>
+            <p className="text-muted-foreground mt-2">Cadastro grátis na plataforma</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5 anim-in-d1">
+            {/* Role selector */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Eu sou</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setRole("freelancer")}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                    role === "freelancer"
+                      ? "border-primary bg-orange-50 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <span className="text-2xl">👨‍🍳</span>
+                  <span className={`text-sm font-medium ${
+                    role === "freelancer" ? "text-primary" : "text-gray-600"
+                  }`}>Freelancer</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRole("establishment")}
+                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 ${
+                    role === "establishment"
+                      ? "border-primary bg-orange-50 shadow-sm"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <span className="text-2xl">🏪</span>
+                  <span className={`text-sm font-medium ${
+                    role === "establishment" ? "text-primary" : "text-gray-600"
+                  }`}>Estabelecimento</span>
+                </button>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-medium">Email</Label>
               <Input

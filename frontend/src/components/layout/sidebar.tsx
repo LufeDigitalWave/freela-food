@@ -12,16 +12,32 @@ import {
   Star,
   User,
   LogOut,
+  PlusCircle,
+  Users,
+  Send,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 
-const navItems = [
+const freelancerNav = [
   { href: "/", icon: Home, label: "Dashboard" },
   { href: "/profile", icon: User, label: "Perfil" },
-  { href: "/jobs", icon: Briefcase, label: "Vagas" },
+  { href: "/jobs", icon: Briefcase, label: "Buscar vagas" },
   { href: "/applications", icon: FileText, label: "Candidaturas" },
+  { href: "/contracts", icon: ClipboardList, label: "Contratos" },
+  { href: "/reviews", icon: Star, label: "Avaliações" },
+  { href: "/payments", icon: CreditCard, label: "Pagamentos" },
+  { href: "/notifications", icon: Bell, label: "Notificações" },
+];
+
+const establishmentNav = [
+  { href: "/", icon: Home, label: "Dashboard" },
+  { href: "/profile", icon: User, label: "Perfil" },
+  { href: "/jobs/mine", icon: Briefcase, label: "Minhas vagas" },
+  { href: "/jobs/new", icon: PlusCircle, label: "Criar vaga" },
+  { href: "/candidates", icon: Users, label: "Candidatos" },
+  { href: "/invitations", icon: Send, label: "Convites" },
   { href: "/contracts", icon: ClipboardList, label: "Contratos" },
   { href: "/reviews", icon: Star, label: "Avaliações" },
   { href: "/payments", icon: CreditCard, label: "Pagamentos" },
@@ -32,12 +48,25 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
 
+  const navItems = user?.role === "establishment" ? establishmentNav : freelancerNav;
+
   return (
     <aside className="hidden md:flex md:w-[260px] md:flex-col md:fixed md:inset-y-0 bg-[#f9fafb] border-r border-gray-100">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-6 h-[72px]">
         <span className="text-2xl">🍽️</span>
         <span className="text-lg font-bold gradient-text">freela-food</span>
+      </div>
+
+      {/* Role badge */}
+      <div className="px-6 mb-3">
+        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold ${
+          user?.role === "establishment"
+            ? "bg-blue-50 text-blue-700"
+            : "bg-orange-50 text-primary"
+        }`}>
+          {user?.role === "establishment" ? "🏪 Estabelecimento" : "👨‍🍳 Freelancer"}
+        </span>
       </div>
 
       {/* Navigation */}
