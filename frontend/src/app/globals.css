@@ -7,9 +7,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'DM Sans', sans-serif;
-  --font-mono: var(--font-geist-mono);
-  --font-heading: 'Playfair Display', serif;
+  --font-sans: var(--font-inter), 'Inter', sans-serif;
+  --font-mono: ui-monospace, monospace;
+  --font-heading: var(--font-instrument), 'Instrument Serif', serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -43,45 +43,42 @@
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 :root {
-  /* Warm dark theme — cozinha profissional */
-  --background: oklch(0.13 0.01 60);
-  --foreground: oklch(0.93 0.01 80);
-  --card: oklch(0.17 0.015 55);
-  --card-foreground: oklch(0.93 0.01 80);
-  --popover: oklch(0.17 0.015 55);
-  --popover-foreground: oklch(0.93 0.01 80);
-  --primary: oklch(0.75 0.15 55);
-  --primary-foreground: oklch(0.13 0.01 60);
-  --secondary: oklch(0.22 0.02 50);
-  --secondary-foreground: oklch(0.88 0.02 70);
-  --muted: oklch(0.20 0.015 55);
-  --muted-foreground: oklch(0.60 0.03 60);
-  --accent: oklch(0.65 0.18 40);
-  --accent-foreground: oklch(0.13 0.01 60);
-  --destructive: oklch(0.60 0.22 25);
-  --border: oklch(0.25 0.02 55);
-  --input: oklch(0.22 0.02 55);
-  --ring: oklch(0.75 0.15 55);
-  --chart-1: oklch(0.75 0.15 55);
-  --chart-2: oklch(0.65 0.18 40);
-  --chart-3: oklch(0.55 0.12 70);
-  --chart-4: oklch(0.45 0.08 80);
-  --chart-5: oklch(0.35 0.05 60);
+  /* Light Premium — clean & sophisticated */
+  --background: #ffffff;
+  --foreground: #0f0f0f;
+  --card: #ffffff;
+  --card-foreground: #0f0f0f;
+  --popover: #ffffff;
+  --popover-foreground: #0f0f0f;
+  --primary: #e85d2c;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f4;
+  --secondary-foreground: #0f0f0f;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+  --accent: #fff7ed;
+  --accent-foreground: #c2410c;
+  --destructive: #dc2626;
+  --border: #e5e7eb;
+  --input: #f3f4f6;
+  --ring: #e85d2c;
+  --chart-1: #e85d2c;
+  --chart-2: #f59e0b;
+  --chart-3: #10b981;
+  --chart-4: #3b82f6;
+  --chart-5: #8b5cf6;
   --radius: 0.75rem;
-  --sidebar: oklch(0.11 0.01 55);
-  --sidebar-foreground: oklch(0.88 0.02 70);
-  --sidebar-primary: oklch(0.75 0.15 55);
-  --sidebar-primary-foreground: oklch(0.13 0.01 60);
-  --sidebar-accent: oklch(0.20 0.02 50);
-  --sidebar-accent-foreground: oklch(0.93 0.01 80);
-  --sidebar-border: oklch(0.22 0.02 55);
-  --sidebar-ring: oklch(0.75 0.15 55);
+  --sidebar: #f9fafb;
+  --sidebar-foreground: #0f0f0f;
+  --sidebar-primary: #e85d2c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f3f4f6;
+  --sidebar-accent-foreground: #0f0f0f;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #e85d2c;
 }
 
 @layer base {
@@ -90,65 +87,73 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
   }
-  html {
-    @apply font-sans;
-  }
-  h1, h2, h3 {
-    font-family: 'Playfair Display', serif;
-    letter-spacing: -0.02em;
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading), 'Instrument Serif', serif;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
   }
 }
 
-/* Animações custom */
+/* ─── Card hover lift ─────────────────────────── */
+.card-lift {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 8%), 0 2px 6px rgb(0 0 0 / 4%);
+}
+
+/* ─── Skeleton loading ───────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.skeleton {
+  background: #e5e7eb;
+  border-radius: 6px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* ─── Animations ────────────────────────────── */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
+.anim-in       { animation: fadeInUp 0.45s ease-out forwards; }
+.anim-in-d1    { animation: fadeInUp 0.45s ease-out 0.08s forwards; opacity: 0; }
+.anim-in-d2    { animation: fadeInUp 0.45s ease-out 0.16s forwards; opacity: 0; }
+.anim-in-d3    { animation: fadeInUp 0.45s ease-out 0.24s forwards; opacity: 0; }
+.anim-in-d4    { animation: fadeInUp 0.45s ease-out 0.32s forwards; opacity: 0; }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
-}
-
-.animate-fade-in-up-delay-1 {
-  animation: fadeInUp 0.5s ease-out 0.1s forwards;
-  opacity: 0;
-}
-
-.animate-fade-in-up-delay-2 {
-  animation: fadeInUp 0.5s ease-out 0.2s forwards;
-  opacity: 0;
-}
-
-.animate-fade-in-up-delay-3 {
-  animation: fadeInUp 0.5s ease-out 0.3s forwards;
-  opacity: 0;
-}
-
+/* ─── Orange gradient text ───────────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, oklch(0.80 0.16 55), oklch(0.65 0.20 35));
+  background: linear-gradient(135deg, #e85d2c 0%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-.glass-card {
-  background: oklch(0.17 0.015 55 / 80%);
-  backdrop-filter: blur(12px);
-  border: 1px solid oklch(0.30 0.03 55 / 40%);
+/* ─── Stat icon bubble ───────────────────────── */
+.stat-bubble {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.glow-amber {
-  box-shadow: 0 0 20px oklch(0.75 0.15 55 / 20%), 0 0 60px oklch(0.75 0.15 55 / 5%);
+/* ─── Decorative divider ─────────────────────── */
+.divider-gradient {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e5e7eb 20%, #e5e7eb 80%, transparent);
 }

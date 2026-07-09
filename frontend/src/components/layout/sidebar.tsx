@@ -33,18 +33,15 @@ export function Sidebar() {
   const { user, logout } = useAuth();
 
   return (
-    <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r border-border/50"
-      style={{ background: "var(--sidebar)" }}>
+    <aside className="hidden md:flex md:w-[260px] md:flex-col md:fixed md:inset-y-0 bg-[#f9fafb] border-r border-gray-100">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 h-16 border-b border-border/30">
-        <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-          <span className="text-base">🍽️</span>
-        </div>
-        <span className="font-bold text-lg gradient-text">freela-food</span>
+      <div className="flex items-center gap-2.5 px-6 h-[72px]">
+        <span className="text-2xl">🍽️</span>
+        <span className="text-lg font-bold gradient-text">freela-food</span>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      {/* Navigation */}
+      <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -54,39 +51,38 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-150",
                 isActive
-                  ? "bg-primary/15 text-primary shadow-sm"
-                  : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                  ? "bg-white text-primary shadow-sm ring-1 ring-black/[0.04]"
+                  : "text-gray-600 hover:bg-white hover:text-gray-900 hover:shadow-sm hover:ring-1 hover:ring-black/[0.03]"
               )}
             >
               <item.icon className={cn(
-                "h-4 w-4 transition-transform duration-200",
-                isActive ? "text-primary" : "group-hover:scale-110"
+                "h-[18px] w-[18px] transition-colors",
+                isActive ? "text-primary" : "text-gray-400 group-hover:text-gray-600"
               )} />
               {item.label}
-              {isActive && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
-              )}
             </Link>
           );
         })}
       </nav>
 
       {/* User footer */}
-      <div className="px-3 pb-4 border-t border-border/30 pt-3">
-        <div className="flex items-center gap-3 px-3 py-2.5">
-          <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+      <div className="px-3 py-4 border-t border-gray-100">
+        <div className="flex items-center gap-3 px-3">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+            style={{ background: "linear-gradient(135deg, #e85d2c, #f59e0b)" }}>
             {user?.email?.[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
           <button
             onClick={logout}
-            className="text-muted-foreground hover:text-foreground transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            title="Sair"
           >
-            <LogOut className="h-3.5 w-3.5" />
+            <LogOut className="h-4 w-4" />
           </button>
         </div>
       </div>
