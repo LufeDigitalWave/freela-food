@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Bell, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
 import { api } from "@/lib/api";
 import type { NotificationList } from "@/lib/types";
 
@@ -47,23 +48,25 @@ function getNotifIcon(type: string): string {
 export default function NotificationsPage() {
   const [notifs, setNotifs] = useState<NotificationList | null>(null);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 15;
 
-  const fetch = () => {
-    api.get<NotificationList>("/me/notifications?page_size=50")
+  const doFetch = () => {
+    api.get<NotificationList>("/me/notifications", { params: { page, page_size: PAGE_SIZE } })
       .then(({ data }) => setNotifs(data))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetch(); }, []);
+  useEffect(() => { doFetch(); }, [page]);
 
   const markAllRead = async () => {
     await api.post("/me/notifications/read-all");
-    fetch();
+    doFetch();
   };
 
   const markRead = async (id: string) => {
     await api.post(`/notifications/${id}/read`);
-    fetch();
+    doFetch();
   };
 
   return (
@@ -131,6 +134,10 @@ export default function NotificationsPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {notifs && (
+        <Pagination page={page} pageSize={PAGE_SIZE} total={notifs.total} onPageChange={setPage} />
       )}
     </div>
   );

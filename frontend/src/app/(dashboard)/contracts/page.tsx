@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ClipboardList } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Pagination } from "@/components/ui/pagination";
 import { api } from "@/lib/api";
 import type { ContractList } from "@/lib/types";
 
@@ -27,15 +27,17 @@ const tabs = [
 export default function ContractsPage() {
   const [contracts, setContracts] = useState<ContractList | null>(null);
   const [tab, setTab] = useState("all");
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const PAGE_SIZE = 10;
 
   useEffect(() => {
     setLoading(true);
-    const params = tab === "all" ? { page_size: 50 } : { status: tab, page_size: 50 };
+    const params = { page, page_size: PAGE_SIZE, ...(tab !== "all" ? { status: tab } : {}) };
     api.get<ContractList>("/me/contracts", { params })
       .then(({ data }) => setContracts(data))
       .finally(() => setLoading(false));
-  }, [tab]);
+  }, [tab, page]);
 
   return (
     <div className="space-y-6">
@@ -101,6 +103,10 @@ export default function ContractsPage() {
             );
           })}
         </div>
+      )}
+
+      {contracts && (
+        <Pagination page={page} pageSize={PAGE_SIZE} total={contracts.total} onPageChange={(p) => { setPage(p); }} />
       )}
     </div>
   );

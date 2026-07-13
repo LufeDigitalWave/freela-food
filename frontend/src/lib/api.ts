@@ -18,14 +18,20 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Interceptor: redireciona pra login em 401
+// Interceptor: error handling global
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("access_token");
-      if (!window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
+    if (typeof window !== "undefined") {
+      if (error.response?.status === 401) {
+        localStorage.removeItem("access_token");
+        if (!window.location.pathname.includes("/login")) {
+          window.location.href = "/login";
+        }
+      } else if (error.response?.status >= 500) {
+        import("@/components/ui/toast").then(({ showToast }) => {
+          showToast("Erro no servidor. Tente novamente.", "error");
+        });
       }
     }
     return Promise.reject(error);
