@@ -118,7 +118,7 @@ export default function NewJobPage() {
 
         <div className="bg-white rounded-2xl p-6 ring-1 ring-black/[0.04] shadow-sm space-y-5">
           <h3 className="font-semibold text-gray-900" style={{ fontFamily: "'Instrument Serif', serif" }}>Data e horário</h3>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Data *</Label>
               <Input

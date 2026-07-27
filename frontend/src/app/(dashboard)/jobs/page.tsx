@@ -32,7 +32,8 @@ export default function JobsPage() {
       );
       const geoData = await geoRes.json();
       if (!geoData.length) {
-        alert("Endereço não encontrado. Tente ser mais específico.");
+        const { showToast } = await import("@/components/ui/toast");
+        showToast("Endereço não encontrado. Tente ser mais específico.", "error");
         setLoading(false);
         setGeocoding(false);
         return;
@@ -54,7 +55,8 @@ export default function JobsPage() {
       setJobs(data);
     } catch (err) {
       console.error(err);
-      alert("Erro ao buscar. Tente novamente.");
+      const { showToast } = await import("@/components/ui/toast");
+      showToast("Erro ao buscar. Tente novamente.", "error");
     } finally {
       setLoading(false);
       setGeocoding(false);

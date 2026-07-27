@@ -126,7 +126,7 @@ function FreelancerProfileForm() {
           <Label className="text-sm font-medium">Bio</Label>
           <Textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Conte sobre sua experiência..." rows={3} className="rounded-xl bg-muted border-0 resize-none" />
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label className="text-sm font-medium">Telefone</Label>
             <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" className="h-12 rounded-xl bg-muted border-0" />
@@ -263,7 +263,7 @@ function EstablishmentProfileForm() {
             <Label className="text-sm font-medium">Rua / número</Label>
             <Input value={addressLine} onChange={(e) => setAddressLine(e.target.value)} placeholder="Rua Augusta, 1234" className="h-12 rounded-xl bg-muted border-0" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Bairro</Label>
               <Input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} placeholder="Consolação" className="h-12 rounded-xl bg-muted border-0" />
@@ -273,7 +273,7 @@ function EstablishmentProfileForm() {
               <Input value={cep} onChange={(e) => setCep(e.target.value)} placeholder="01310-100" maxLength={8} className="h-12 rounded-xl bg-muted border-0" />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-sm font-medium">Cidade</Label>
               <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="São Paulo" className="h-12 rounded-xl bg-muted border-0" />

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { api } from "@/lib/api";
+import { MobileDrawer } from "./mobile-drawer";
 
 export function Header() {
   const [unread, setUnread] = useState(0);
@@ -17,7 +18,8 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 flex h-[72px] items-center gap-4 border-b border-gray-100 bg-white/80 backdrop-blur-xl px-8 md:pl-[292px]">
+    <header className="sticky top-0 z-40 flex h-[72px] items-center gap-4 border-b border-gray-100 bg-white/80 backdrop-blur-xl px-4 md:px-8 md:pl-[292px]">
+      <MobileDrawer />
       <div className="flex-1" />
       <Link
         href="/notifications"
@@ -25,7 +27,7 @@ export function Header() {
       >
         <Bell className="h-5 w-5 text-gray-400" />
         {unread > 0 && (
-          <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white"  >
+          <span className="absolute top-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
             {unread}
           </span>
         )}
