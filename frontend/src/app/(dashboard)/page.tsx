@@ -145,7 +145,7 @@ function EstablishmentDashboard() {
             <PlusCircle className="h-4 w-4" /> Criar vaga
           </Button>
         </Link>
-        <Link href="/jobs">
+        <Link href="/freelancers">
           <Button variant="outline" className="rounded-full gap-2 h-10">
             <Users className="h-4 w-4" /> Buscar freelancers
           </Button>

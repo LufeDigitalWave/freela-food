@@ -134,6 +134,48 @@ export interface PaymentList {
   page_size: number;
 }
 
+export interface FreelancerSearchRead {
+  user_id: string;
+  display_name: string;
+  bio: string | null;
+  avatar_url: string | null;
+  completed_contracts_count: number;
+  no_show_count: number;
+  distance_m: number;
+  average_rating: number | null;
+  total_reviews: number;
+}
+
+export interface FreelancerSearchList {
+  items: FreelancerSearchRead[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
+export interface Invitation {
+  id: string;
+  establishment_id: string;
+  freelancer_id: string;
+  skill_category_id: string;
+  start_at: string;
+  end_at: string;
+  proposed_hourly_rate: string | null;
+  proposed_total_pay: string | null;
+  message: string | null;
+  status: "pending" | "accepted" | "declined" | "withdrawn" | "expired";
+  expires_at: string;
+  decided_at: string | null;
+  created_at: string;
+}
+
+export interface InvitationList {
+  items: Invitation[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
 export interface Notification {
   id: string;
   type: string;
