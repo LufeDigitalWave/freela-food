@@ -242,4 +242,10 @@ uv run arq app.workers.arq_worker.WorkerSettings
 - **Sprint 7**: Matching engine — scoring multi-fator de freelancers (proximity, skill, rating, reliability, experience, repeat-hire). ✅ (15 testes novos; suíte 195/195)
 - **Sprint 8**: Moderação — reports user-facing + admin moderation queue + hide/unhide reviews + notificações. ✅ (18 testes novos; suíte 213/213)
 - **Sprint 9**: Pagamento — registro + confirmação Pix manual + disputa + auto-create no lifecycle. ✅ (11 testes novos; suíte 224/224)
-- **Sprint 10+**: Gateway Pix real (Mercado Pago/Asaas), refresh tokens, mobile.
+- **Sprint 10.1**: Frontend fix pack (mobile nav + candidaturas reais + responsividade). ✅
+- **Sprint 10.2**: Fluxo B frontend (busca freelancers + convites diretos). ✅
+- **Sprint 10.3**: Onboarding pós-cadastro + profile completeness. ✅
+- **Sprint 11**: Deploy MVP (Dockerfile frontend + Caddy + scripts + healthcheck ready + Sentry). ✅
+- **Sprint 12**: Auth/security (refresh tokens, rate limit, CORS, password policy). ← *você está aqui*
+- **Sprint 13**: Gateway Pix real (Asaas/MP).
+- **Sprint 14**: Admin frontend.
