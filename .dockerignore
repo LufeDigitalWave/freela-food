@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# Python dev
+.venv
+__pycache__
+*.pyc
+.mypy_cache
+.pytest_cache
+.ruff_cache
+
+# Tests (not needed in production image)
+tests/
+
+# Frontend node_modules (rebuilt in Dockerfile)
+frontend/node_modules
+frontend/.next
+
+# Docs
+docs/
+
+# IDE
+.vscode
+.idea
+
+# Env files
+.env
+.env.local
+
+# Misc
+*.log
+hook-*.log

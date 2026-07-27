@@ -1,0 +1,24 @@
+# Caddyfile — reverse proxy para freela-food
+# Usar domínio real para TLS automático via Let's Encrypt.
+# Se não tiver domínio ainda, usar :80 (sem TLS).
+
+:80 {
+    # API backend
+    handle /v1/* {
+        reverse_proxy api:8000
+    }
+    handle /health* {
+        reverse_proxy api:8000
+    }
+    handle /docs* {
+        reverse_proxy api:8000
+    }
+    handle /openapi.json {
+        reverse_proxy api:8000
+    }
+
+    # Frontend (default)
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

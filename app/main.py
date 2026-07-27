@@ -30,8 +30,23 @@ from app.utils.audit import request_ip, request_ua
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     configure_logging()
+    settings = get_settings()
     log = get_logger("app.lifespan")
-    log.info("api.startup", env=get_settings().env)
+
+    if settings.sentry_dsn:
+        try:
+            import sentry_sdk  # type: ignore[import-not-found]
+
+            sentry_sdk.init(
+                dsn=settings.sentry_dsn,
+                environment=settings.env,
+                traces_sample_rate=0.1,
+            )
+            log.info("sentry.initialized")
+        except ImportError:
+            log.warning("sentry_sdk not installed, skipping")
+
+    log.info("api.startup", env=settings.env)
     yield
     await close_redis()
     log.info("api.shutdown")
@@ -52,6 +67,18 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.middleware("http")
+    async def _request_id(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        import uuid as _uuid
+
+        req_id = request.headers.get("x-request-id") or str(_uuid.uuid4())
+        request.state.request_id = req_id
+        response = await call_next(request)
+        response.headers["x-request-id"] = req_id
+        return response
 
     @app.middleware("http")
     async def _audit_context(
