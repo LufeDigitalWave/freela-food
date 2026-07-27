@@ -44,6 +44,18 @@ class Settings(BaseSettings):
     # LGPD: grace period entre soft-delete e purge definitivo
     delete_grace_period_days: int = Field(default=30, ge=1)
 
+    # Auth: refresh tokens
+    refresh_token_expire_days: int = Field(default=30, ge=1)
+    access_token_expire_minutes: int = Field(default=15, ge=1)
+
+    # Rate limiting
+    rate_limit_login: int = Field(default=5)  # per minute per IP
+    rate_limit_register: int = Field(default=3)  # per minute per IP
+    rate_limit_default: int = Field(default=60)  # per minute per user
+
+    # Password policy
+    password_min_length: int = Field(default=8, ge=6)
+
     # Fluxo B: validade default de um convite (limitada também pelo start_at)
     invitation_ttl_hours: int = Field(default=72, ge=1)
 

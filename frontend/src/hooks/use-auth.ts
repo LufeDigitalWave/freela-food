@@ -36,11 +36,14 @@ export function useAuth() {
   }, []);
 
   const login = async (email: string, password: string) => {
-    const { data } = await api.post<AuthResponse>("/auth/login", {
+    const { data } = await api.post<AuthResponse & { refresh_token?: string }>("/auth/login", {
       email,
       password,
     });
     localStorage.setItem("access_token", data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem("refresh_token", data.refresh_token);
+    }
     await fetchMe();
     router.push("/");
   };
@@ -57,8 +60,17 @@ export function useAuth() {
     router.push("/onboarding");
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const refreshToken = localStorage.getItem("refresh_token");
+    if (refreshToken) {
+      try {
+        await api.post("/auth/logout", { refresh_token: refreshToken });
+      } catch {
+        // best-effort
+      }
+    }
     localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
     setUser(null);
     router.push("/login");
   };
