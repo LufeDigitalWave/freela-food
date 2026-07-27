@@ -20,6 +20,7 @@ from app.api.v1.me.router import router as me_router
 from app.api.v1.notifications.router import router as notifications_router
 from app.api.v1.reports.router import router as reports_router
 from app.api.v1.reviews.router import router as reviews_router
+from app.api.v1.webhooks.payments import router as webhooks_router
 from app.core.config import get_settings
 from app.core.exceptions import DomainError
 from app.core.logging import configure_logging, get_logger
@@ -118,6 +119,7 @@ def create_app() -> FastAPI:
     app.include_router(establishments_router, prefix="/v1")
     app.include_router(admin_router, prefix="/v1")
     app.include_router(reports_router, prefix="/v1")
+    app.include_router(webhooks_router, prefix="/v1")
 
     return app
 
