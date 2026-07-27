@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ProfileBanner } from "@/components/profile-banner";
 import { api } from "@/lib/api";
 import type { ContractList, NotificationList } from "@/lib/types";
 import { useAuth } from "@/hooks/use-auth";
@@ -39,6 +40,7 @@ function FreelancerDashboard() {
 
   return (
     <div className="space-y-8">
+      <ProfileBanner />
       <div className="anim-in">
         <h2 className="text-3xl font-bold text-gray-900">{greeting}! 👋</h2>
         <p className="text-gray-500 mt-1">Resumo da sua atividade na plataforma</p>
@@ -133,6 +135,7 @@ function EstablishmentDashboard() {
 
   return (
     <div className="space-y-8">
+      <ProfileBanner />
       <div className="anim-in">
         <h2 className="text-3xl font-bold text-gray-900">{greeting}! 🏪</h2>
         <p className="text-gray-500 mt-1">Painel do seu estabelecimento</p>

@@ -51,7 +51,10 @@ export function useAuth() {
     role: string = "freelancer"
   ) => {
     await api.post("/auth/register", { email, password, role });
-    await login(email, password);
+    const { data } = await api.post<AuthResponse>("/auth/login", { email, password });
+    localStorage.setItem("access_token", data.access_token);
+    await fetchMe();
+    router.push("/onboarding");
   };
 
   const logout = () => {
