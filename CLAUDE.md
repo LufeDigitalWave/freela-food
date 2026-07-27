@@ -246,6 +246,6 @@ uv run arq app.workers.arq_worker.WorkerSettings
 - **Sprint 10.2**: Fluxo B frontend (busca freelancers + convites diretos). ✅
 - **Sprint 10.3**: Onboarding pós-cadastro + profile completeness. ✅
 - **Sprint 11**: Deploy MVP (Dockerfile frontend + Caddy + scripts + healthcheck ready + Sentry). ✅
-- **Sprint 12**: Auth/security (refresh tokens, rate limit, CORS, password policy). ← *você está aqui*
-- **Sprint 13**: Gateway Pix real (Asaas/MP).
-- **Sprint 14**: Admin frontend.
+- **Sprint 12**: Auth/security (refresh tokens, rate limit, CORS, password policy). ✅
+- **Sprint 13**: Gateway Pix (skeleton Asaas + webhook endpoint — integração real depende de sandbox key). ✅
+- **Sprint 14**: Admin frontend (painel operacional completo — 6 páginas). ✅
