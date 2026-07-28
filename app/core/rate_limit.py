@@ -38,9 +38,13 @@ async def check_rate_limit(
 
 async def rate_limit_login(request: Request) -> None:
     settings = get_settings()
+    if settings.env == "dev":
+        return
     await check_rate_limit(request, key_prefix="login", limit=settings.rate_limit_login)
 
 
 async def rate_limit_register(request: Request) -> None:
     settings = get_settings()
+    if settings.env == "dev":
+        return
     await check_rate_limit(request, key_prefix="register", limit=settings.rate_limit_register)

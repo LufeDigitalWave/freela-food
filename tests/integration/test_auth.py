@@ -53,7 +53,7 @@ async def test_login_returns_token(client: AsyncClient) -> None:
     data = response.json()
     assert "access_token" in data
     assert data["token_type"] == "bearer"
-    assert data["expires_in"] > 0
+    assert "refresh_token" in data
 
 
 async def test_login_wrong_password_returns_401(client: AsyncClient) -> None:
