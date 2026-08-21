@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Middleware — redireciona usuários autenticados de / para /dashboard.
+ * Proxy (Next.js 16) — redireciona usuários autenticados de / para /dashboard.
  *
  * Não valida JWT server-side (apenas checa presença do cookie/header).
  * A validação real acontece na API (/auth/me).
@@ -10,7 +10,7 @@ import type { NextRequest } from "next/server";
  * Isso permite que a landing page (/) seja server-rendered (SEO-friendly)
  * enquanto users autenticados são redirecionados imediatamente.
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Só intercepta a landing page (/) para redirect autenticado
