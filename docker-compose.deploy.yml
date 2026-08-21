@@ -13,6 +13,8 @@ services:
     restart: unless-stopped
     expose:
       - "8000"
+    networks:
+      - freela-food
     healthcheck:
       test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()"]
       interval: 30s
@@ -34,6 +36,8 @@ services:
     env_file: .env
     command: ["arq", "app.workers.arq_worker.WorkerSettings"]
     restart: unless-stopped
+    networks:
+      - freela-food
     depends_on:
       api:
         condition: service_healthy
@@ -51,6 +55,8 @@ services:
     environment:
       - NEXT_PUBLIC_API_URL=http://api:8000/v1
     restart: unless-stopped
+    networks:
+      - freela-food
     expose:
       - "3000"
     healthcheck:
@@ -69,6 +75,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    networks:
+      - freela-food
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -86,3 +94,7 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+
+networks:
+  freela-food:
+    external: true

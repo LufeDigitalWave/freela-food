@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from app.core.config import Settings
 
 
-def init_sentry(settings: "Settings") -> None:
+def init_sentry(settings: Settings) -> None:
     """Inicializa Sentry se DSN foi configurado.
 
     Integra com: FastAPI, SQLAlchemy, Redis, logging estruturado.
@@ -26,9 +26,15 @@ def init_sentry(settings: "Settings") -> None:
 
     try:
         import sentry_sdk  # type: ignore[import-not-found]
-        from sentry_sdk.integrations.fastapi import FastApiIntegration  # type: ignore[import-not-found]
-        from sentry_sdk.integrations.logging import LoggingIntegration  # type: ignore[import-not-found]
-        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration  # type: ignore[import-not-found]
+        from sentry_sdk.integrations.fastapi import (  # type: ignore[import-not-found]
+            FastApiIntegration,
+        )
+        from sentry_sdk.integrations.logging import (  # type: ignore[import-not-found]
+            LoggingIntegration,
+        )
+        from sentry_sdk.integrations.sqlalchemy import (  # type: ignore[import-not-found]
+            SqlalchemyIntegration,
+        )
     except ImportError:
         logging.warning("sentry_sdk não instalado; 'uv add sentry-sdk[fastapi]' para habilitar")
         return

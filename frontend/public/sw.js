@@ -11,7 +11,6 @@ const CACHE_NAME = 'freela-food-v1';
 const OFFLINE_URL = '/offline';
 
 const STATIC_ASSETS = [
-  '/',
   '/como-funciona',
   '/sobre',
   '/termos',

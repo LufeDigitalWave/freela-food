@@ -49,5 +49,10 @@ class PaymentClient:
         )
 
     async def verify_webhook_signature(self, payload: bytes, signature: str) -> bool:
-        log.info("payment_client.verify_signature.stub")
-        return True
+        """Verifica assinatura HMAC do webhook.
+
+        STUB: retorna False até implementação real com API key do Asaas.
+        Isso rejeita TODOS os webhooks (seguro — melhor que aceitar todos).
+        """
+        log.warning("payment_client.verify_signature.stub_reject", reason="not_implemented")
+        return False
