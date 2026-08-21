@@ -27,9 +27,9 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-white">
+      <div className="flex h-screen items-center justify-center bg-white" role="status" aria-live="polite" aria-label="Carregando conteúdo">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-gray-200 border-t-primary rounded-full animate-spin" />
+          <div className="w-8 h-8 border-3 border-gray-200 border-t-primary rounded-full animate-spin" aria-hidden="true" />
           <p className="text-sm text-gray-400">Carregando...</p>
         </div>
       </div>
@@ -43,7 +43,9 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="md:pl-[260px]">
         <Header />
-        <main className="px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 max-w-5xl">{children}</main>
+        <main className="px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 max-w-5xl" role="main">
+          {children}
+        </main>
       </div>
       <BottomTabs user={user} />
     </div>

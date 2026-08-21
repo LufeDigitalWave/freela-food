@@ -42,7 +42,7 @@ export function MobileDrawer() {
         aria-label="Abrir menu"
         aria-expanded={open}
       >
-        <Menu className="h-5 w-5 text-gray-700" />
+        <Menu className="h-5 w-5 text-gray-700" aria-hidden="true" />
       </button>
 
       {open && (
@@ -68,7 +68,7 @@ export function MobileDrawer() {
                 aria-label="Fechar menu"
                 className="p-2 rounded-lg hover:bg-gray-50"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -83,6 +83,7 @@ export function MobileDrawer() {
                       <Link
                         href={item.href}
                         onClick={close}
+                        aria-current={isActive ? "page" : undefined}
                         className={cn(
                           "flex items-center px-3 py-2.5 rounded-xl text-[14px] font-medium transition-all",
                           isActive
@@ -113,7 +114,7 @@ export function MobileDrawer() {
                 }}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[14px] font-medium text-gray-700 hover:bg-gray-50"
               >
-                <LogOut className="h-4 w-4" /> Sair
+                <LogOut className="h-4 w-4" aria-hidden="true" /> Sair
               </button>
             </div>
           </aside>

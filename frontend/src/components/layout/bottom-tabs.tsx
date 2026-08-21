@@ -54,7 +54,7 @@ export function BottomTabs({ user }: { user: UserType | null }) {
                 )}
                 aria-current={isActive ? "page" : undefined}
               >
-                <Icon className="h-5 w-5" aria-hidden />
+                <Icon className="h-5 w-5" aria-hidden="true" />
                 <span>{label}</span>
               </Link>
             </li>
