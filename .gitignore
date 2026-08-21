@@ -63,6 +63,7 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+.env.deploy
 
 # Supabase CLI
 supabase/.branches/
