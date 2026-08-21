@@ -63,7 +63,7 @@ export default function ReviewsPage() {
                 por <span className="font-medium text-gray-700">{r.reviewer_display_name || "Anônimo"}</span>
               </p>
               {r.comment && (
-                <p className="text-sm text-gray-600 mt-2 italic">"{r.comment}"</p>
+                <p className="text-sm text-gray-600 mt-2 italic">&ldquo;{r.comment}&rdquo;</p>
               )}
             </div>
           ))}

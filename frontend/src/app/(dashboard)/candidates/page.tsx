@@ -151,7 +151,7 @@ export default function CandidatesPage() {
                         Freelancer #{app.freelancer_id.slice(0, 8)}
                       </p>
                       {app.message && (
-                        <p className="text-xs text-gray-500 truncate mt-0.5">"{app.message}"</p>
+                        <p className="text-xs text-gray-500 truncate mt-0.5">&ldquo;{app.message}&rdquo;</p>
                       )}
                       <p className="text-xs text-gray-400 mt-0.5">
                         {new Date(app.created_at).toLocaleDateString("pt-BR")}

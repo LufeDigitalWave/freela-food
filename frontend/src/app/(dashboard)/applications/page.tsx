@@ -83,7 +83,7 @@ export default function ApplicationsPage() {
                       </p>
                     </Link>
                     {app.message && (
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">"{app.message}"</p>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">&ldquo;{app.message}&rdquo;</p>
                     )}
                     <p className="text-xs text-gray-400 mt-1">
                       {new Date(app.created_at).toLocaleDateString("pt-BR")}

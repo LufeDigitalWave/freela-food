@@ -32,7 +32,6 @@ export default function ContractsPage() {
   const PAGE_SIZE = 10;
 
   useEffect(() => {
-    setLoading(true);
     const params = { page, page_size: PAGE_SIZE, ...(tab !== "all" ? { status: tab } : {}) };
     api.get<ContractList>("/me/contracts", { params })
       .then(({ data }) => setContracts(data))

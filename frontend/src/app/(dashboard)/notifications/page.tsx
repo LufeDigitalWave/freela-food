@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Bell, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -51,13 +51,15 @@ export default function NotificationsPage() {
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 15;
 
-  const doFetch = () => {
+  const doFetch = useCallback(() => {
     api.get<NotificationList>("/me/notifications", { params: { page, page_size: PAGE_SIZE } })
       .then(({ data }) => setNotifs(data))
       .finally(() => setLoading(false));
-  };
+  }, [page]);
 
-  useEffect(() => { doFetch(); }, [page]);
+  useEffect(() => {
+    doFetch();
+  }, [doFetch]);
 
   const markAllRead = async () => {
     await api.post("/me/notifications/read-all");
