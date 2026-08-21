@@ -34,18 +34,10 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     settings = get_settings()
     log = get_logger("app.lifespan")
 
-    if settings.sentry_dsn:
-        try:
-            import sentry_sdk  # type: ignore[import-not-found]
+    # Inicializar Sentry (se DSN configurado)
+    from app.core.sentry_client import init_sentry
 
-            sentry_sdk.init(
-                dsn=settings.sentry_dsn,
-                environment=settings.env,
-                traces_sample_rate=0.1,
-            )
-            log.info("sentry.initialized")
-        except ImportError:
-            log.warning("sentry_sdk not installed, skipping")
+    init_sentry(settings)
 
     log.info("api.startup", env=settings.env)
     yield

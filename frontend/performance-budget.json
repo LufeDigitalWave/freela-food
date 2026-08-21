@@ -1,0 +1,19 @@
+{
+  "bundles": [
+    {
+      "name": "main",
+      "maxSize": "500kb"
+    },
+    {
+      "name": "vendor",
+      "maxSize": "300kb"
+    }
+  ],
+  "thresholds": {
+    "FCP": 3000,
+    "LCP": 4000,
+    "CLS": 0.1,
+    "TTFB": 1000,
+    "requestCount": 100
+  }
+}
