@@ -6,9 +6,12 @@ Marketplace bidirecional para freelancers de food service (garçom, barman, cozi
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+PostGIS-336791?style=flat-square&logo=postgresql)
-![Tests](https://img.shields.io/badge/testes-224-brightgreen?style=flat-square)
+![Tests](https://img.shields.io/badge/Backend_testes-224-brightgreen?style=flat-square)
+![E2E](https://img.shields.io/badge/E2E_testes-37-brightgreen?style=flat-square)
+![Routes](https://img.shields.io/badge/Rotas-32-blue?style=flat-square)
 ![mypy](https://img.shields.io/badge/mypy-strict-blue?style=flat-square)
 ![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=flat-square&logo=github-actions)
+![PWA](https://img.shields.io/badge/PWA-Ready-orange?style=flat-square&logo=pwa)
 ![License](https://img.shields.io/badge/licença-MIT-green?style=flat-square)
 
 ## O que é
@@ -28,7 +31,11 @@ O **freela-food** conecta profissionais de food service a estabelecimentos para 
 - **LGPD** — CPF/CNPJ cifrados (pgcrypto), export, soft-delete + purge
 - **Admin dashboard** — stats, users, audit log, moderação
 - **Frontend premium** — Next.js + Tailwind + shadcn/ui, role-based UI
-- **224 testes** — integração + unitários, mypy --strict, Ruff
+- **224 testes backend** — integração + unitários, mypy --strict, Ruff
+- **37 E2E tests** — Playwright (landing, auth, nav, mobile, a11y)
+- **PWA ready** — Service Worker, manifest.json, offline support
+- **Accessibility** — WCAG AA: skip-links, aria-labels, landmarks, semantic HTML
+- **CI/CD** — GitHub Actions: lint + type-check + tests + E2E + build
 
 ## Stack
 
@@ -39,8 +46,9 @@ O **freela-food** conecta profissionais de food service a estabelecimentos para 
 | SQLAlchemy 2 async + Alembic | Tailwind CSS v4 + shadcn/ui |
 | Postgres 15 + PostGIS | Inter + Instrument Serif (next/font) |
 | Redis 7 + ARQ | Responsive, mobile-first design |
-| MinIO (S3) | 30 páginas (landing + dashboard + admin) |
-| JWT HS256 + bcrypt | 0 lint errors, tsc strict |
+| MinIO (S3) | 32 rotas (landing + dashboard + admin) |
+| JWT HS256 + bcrypt | 37 E2E tests (Playwright) |
+| structlog + Sentry | PWA ready (manifest + SW) |
 
 ## Como rodar
 
@@ -74,9 +82,15 @@ docker compose -f docker-compose.deploy.yml up -d
 ## Testes
 
 ```bash
-uv run pytest          # 224 testes
+# Backend (224 testes integração)
+uv run pytest          # all tests
 uv run ruff check .    # lint
 uv run mypy app/       # type check
+
+# Frontend (37 E2E tests)
+cd frontend
+npx playwright test          # headless
+npx playwright test --ui     # visual UI
 ```
 
 ## Endpoints (~62)
@@ -131,10 +145,12 @@ tests/             → 224 testes
 - ✅ Sprint 13: Gateway Pix skeleton (Asaas)
 - ✅ Sprint 14: Admin frontend (6 páginas)
 - ✅ Sprint 15: Landing page pública + páginas institucionais
-- ✅ CI/CD: GitHub Actions (lint + type-check + tests + build)
-- 🔜 Playwright E2E tests
-- 🔜 PWA + Service Worker
-- 🔜 Performance (Lighthouse audit, bundle optimization)
+- ✅ Sprint 16: E2E tests Playwright (37 tests)
+- ✅ Sprint 17: PWA (manifest, SW, offline) + WCAG AA accessibility
+- ✅ CI/CD: GitHub Actions (lint + type-check + tests + build + E2E)
+- 🔜 Domínio + HTTPS (Caddy TLS automático)
+- 🔜 Lighthouse performance optimization (target ≥ 90)
+- 🔜 Closed beta with real users
 
 ## Licença
 
