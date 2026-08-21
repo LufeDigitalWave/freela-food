@@ -43,7 +43,7 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="md:pl-[260px]">
         <Header />
-        <main className="px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 max-w-5xl" role="main">
+        <main id="main-content" className="px-4 md:px-8 py-6 md:py-8 pb-24 md:pb-8 max-w-5xl" role="main">
           {children}
         </main>
       </div>

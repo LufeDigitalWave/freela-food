@@ -46,7 +46,7 @@ export default function PublicLayout({
       </header>
 
       {/* ─── Content ────────────────────────────── */}
-      <main className="flex-1">{children}</main>
+      <main id="main-content" className="flex-1" role="main">{children}</main>
 
       {/* ─── Footer ─────────────────────────────── */}
       <footer className="border-t border-border/50 bg-muted/30">
