@@ -20,6 +20,9 @@ export default function DashboardLayout({
     if (!loading && !user) {
       router.push("/login");
     }
+    if (!loading && user && window.location.pathname === "/") {
+      router.push("/dashboard");
+    }
   }, [loading, user, router]);
 
   if (loading) {
