@@ -19,13 +19,10 @@ test.describe('SEO — Server-rendered landing', () => {
   });
 
   test('landing page é pre-rendered (sem loading spinner)', async ({ page }) => {
-    // Navegar e verificar que conteúdo está presente imediatamente
     const response = await page.goto('/');
     const html = await response?.text();
-    // Server-rendered: conteúdo deve estar no HTML inicial
     expect(html).toContain('food service');
     expect(html).toContain('Comece agora');
-    // Não deve ter spinner de loading
     expect(html).not.toContain('Carregando...');
   });
 
@@ -35,7 +32,7 @@ test.describe('SEO — Server-rendered landing', () => {
     expect(h1).toContain('Como funciona');
 
     const h2Count = await page.locator('h2').count();
-    expect(h2Count).toBeGreaterThanOrEqual(3); // Fluxo A, Fluxo B, Depois
+    expect(h2Count).toBeGreaterThanOrEqual(3);
   });
 
   test('sobre page tem structured headings', async ({ page }) => {
@@ -45,6 +42,25 @@ test.describe('SEO — Server-rendered landing', () => {
 
     const h2Count = await page.locator('h2').count();
     expect(h2Count).toBeGreaterThanOrEqual(2);
+  });
+
+  test('robots.txt é acessível e bloqueia dashboard', async ({ page }) => {
+    const response = await page.goto('/robots.txt');
+    expect(response?.status()).toBe(200);
+    const text = await response?.text();
+    expect(text).toContain('Disallow: /dashboard');
+    expect(text).toContain('Allow: /');
+    expect(text).toContain('Sitemap:');
+  });
+
+  test('sitemap.xml é acessível e lista páginas públicas', async ({ page }) => {
+    const response = await page.goto('/sitemap.xml');
+    expect(response?.status()).toBe(200);
+    const text = await response?.text();
+    expect(text).toContain('<urlset');
+    expect(text).toContain('/como-funciona');
+    expect(text).toContain('/sobre');
+    expect(text).toContain('priority');
   });
 });
 

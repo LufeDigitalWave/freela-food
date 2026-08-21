@@ -1,0 +1,26 @@
+# freela-food robots.txt
+# Permite indexação de páginas públicas
+# Bloqueia páginas autenticadas
+
+User-agent: *
+Allow: /
+Allow: /como-funciona
+Allow: /sobre
+Allow: /termos
+Allow: /privacidade
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /onboarding
+Disallow: /profile
+Disallow: /notifications
+Disallow: /applications
+Disallow: /contracts
+Disallow: /invitations
+Disallow: /freelancers
+Disallow: /candidates
+Disallow: /jobs/mine
+Disallow: /jobs/new
+Disallow: /payments
+Disallow: /reviews
+
+Sitemap: https://freela-food.com.br/sitemap.xml
