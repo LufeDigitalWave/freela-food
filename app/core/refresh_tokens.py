@@ -26,7 +26,7 @@ def _hash(token: str) -> str:
 
 async def store_refresh_token(user_id: uuid.UUID, token: str) -> None:
     settings = get_settings()
-    redis = await get_redis()
+    redis = get_redis()
     token_hash = _hash(token)
     key = f"{_PREFIX}{token_hash}"
     user_key = f"{_USER_PREFIX}{user_id}"
@@ -40,7 +40,7 @@ async def store_refresh_token(user_id: uuid.UUID, token: str) -> None:
 
 
 async def validate_refresh_token(token: str) -> uuid.UUID | None:
-    redis = await get_redis()
+    redis = get_redis()
     key = f"{_PREFIX}{_hash(token)}"
     user_id_str = await redis.get(key)
     if not user_id_str:
@@ -49,7 +49,7 @@ async def validate_refresh_token(token: str) -> uuid.UUID | None:
 
 
 async def revoke_refresh_token(token: str) -> None:
-    redis = await get_redis()
+    redis = get_redis()
     token_hash = _hash(token)
     key = f"{_PREFIX}{token_hash}"
 
@@ -65,7 +65,7 @@ async def revoke_refresh_token(token: str) -> None:
 
 async def revoke_all_for_user(user_id: uuid.UUID) -> None:
     """Revoga todos refresh tokens de um user. O(m) onde m = tokens do user."""
-    redis = await get_redis()
+    redis = get_redis()
     user_key = f"{_USER_PREFIX}{user_id}"
 
     # Buscar todos os hashes desse user

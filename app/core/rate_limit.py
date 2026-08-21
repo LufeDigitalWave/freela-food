@@ -15,7 +15,7 @@ async def check_rate_limit(
     limit: int,
     window_seconds: int = 60,
 ) -> None:
-    redis = await get_redis()
+    redis = get_redis()
     # Usar X-Forwarded-For (set by Caddy/proxy) para IP real
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
