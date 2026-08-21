@@ -1,49 +1,25 @@
-"use client";
-
-import { useEffect } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useRouter } from "next/navigation";
-
-/**
- * Root page (/).
- * Conditionally shows:
- * - Landing page if not authenticated
- * - Dashboard if authenticated
- */
-export default function RootPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!loading) {
-      if (user) {
-        // Redirect authenticated users to dashboard
-        router.push("/dashboard");
-      }
-      // Not authenticated: show landing below
-    }
-  }, [user, loading, router]);
-
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-white">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-gray-200 border-t-primary rounded-full animate-spin" />
-          <p className="text-sm text-gray-400">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Render landing page for non-authenticated users
-  return <LandingPage />;
-}
-
-// Landing page component (from (public)/page.tsx)
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Zap, Users, BarChart3, Shield } from "lucide-react";
 
-function LandingPage() {
+export const metadata: Metadata = {
+  title: "freela-food | Marketplace de Food Service",
+  description:
+    "Conectando talentos da gastronomia a oportunidades. Marketplace bidirecional para freelancers de food service e estabelecimentos.",
+  openGraph: {
+    title: "freela-food | Marketplace de Food Service",
+    description:
+      "Garçons, bartenders, cozinheiros e auxiliares conectados a bares e restaurantes.",
+    type: "website",
+    url: "https://freela-food.com.br",
+  },
+};
+
+/**
+ * Landing page pública — server-rendered para SEO.
+ * Users autenticados são redirecionados por middleware.ts.
+ */
+export default function HomePage() {
   return (
     <div className="overflow-hidden">
       {/* ─── Navbar ─────────────────────────────── */}
@@ -97,10 +73,12 @@ function LandingPage() {
             className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
             style={{ fontFamily: "var(--font-heading)" }}
           >
-            O marketplace dos melhores profissionais de <span className="gradient-text">food service</span>
+            O marketplace dos melhores profissionais de{" "}
+            <span className="gradient-text">food service</span>
           </h1>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
-            Conectamos garçons, bartenders, cozinheiros e auxiliares a bares e restaurantes que precisam de talento. Encontre oportunidades, cresça na carreira.
+            Conectamos garçons, bartenders, cozinheiros e auxiliares a bares e restaurantes
+            que precisam de talento. Encontre oportunidades, cresça na carreira.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 anim-in-d1">
@@ -139,57 +117,26 @@ function LandingPage() {
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Feature 1 */}
-          <div className="card-lift p-8 rounded-2xl bg-white border border-border/50 hover:border-primary/30">
-            <div className="stat-bubble bg-primary/10 mb-4">
-              <Zap className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-3" style={{ fontFamily: "var(--font-sans)" }}>
-              Rápido e eficiente
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Encontre oportunidades ou talentos em minutos. Sem burocracias, apenas conexões diretas.
-            </p>
-          </div>
-
-          {/* Feature 2 */}
-          <div className="card-lift p-8 rounded-2xl bg-white border border-border/50 hover:border-primary/30">
-            <div className="stat-bubble bg-primary/10 mb-4">
-              <Users className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-3" style={{ fontFamily: "var(--font-sans)" }}>
-              Comunidade verificada
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Avaliações mútuas após cada trabalho. Transparência e confiança em cada conexão.
-            </p>
-          </div>
-
-          {/* Feature 3 */}
-          <div className="card-lift p-8 rounded-2xl bg-white border border-border/50 hover:border-primary/30">
-            <div className="stat-bubble bg-primary/10 mb-4">
-              <BarChart3 className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-3" style={{ fontFamily: "var(--font-sans)" }}>
-              Histórico transparente
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              Acompanhe seu histórico de trabalhos, ganhos e avaliações em um único lugar.
-            </p>
-          </div>
-
-          {/* Feature 4 */}
-          <div className="card-lift p-8 rounded-2xl bg-white border border-border/50 hover:border-primary/30">
-            <div className="stat-bubble bg-primary/10 mb-4">
-              <Shield className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-3" style={{ fontFamily: "var(--font-sans)" }}>
-              Dados protegidos
-            </h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              LGPD-compliant desde o início. Seus dados são seus. Transparência garantida.
-            </p>
-          </div>
+          <FeatureCard
+            icon={<Zap className="w-6 h-6 text-primary" />}
+            title="Rápido e eficiente"
+            description="Encontre oportunidades ou talentos em minutos. Sem burocracias, apenas conexões diretas."
+          />
+          <FeatureCard
+            icon={<Users className="w-6 h-6 text-primary" />}
+            title="Comunidade verificada"
+            description="Avaliações mútuas após cada trabalho. Transparência e confiança em cada conexão."
+          />
+          <FeatureCard
+            icon={<BarChart3 className="w-6 h-6 text-primary" />}
+            title="Histórico transparente"
+            description="Acompanhe seu histórico de trabalhos, ganhos e avaliações em um único lugar."
+          />
+          <FeatureCard
+            icon={<Shield className="w-6 h-6 text-primary" />}
+            title="Dados protegidos"
+            description="LGPD-compliant desde o início. Seus dados são seus. Transparência garantida."
+          />
         </div>
       </section>
 
@@ -222,7 +169,7 @@ function LandingPage() {
       </div>
 
       {/* ─── CTA ────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-6 py-20 text-center anim-in">
+      <section className="max-w-6xl mx-auto px-6 py-20 text-center">
         <h2
           className="text-4xl md:text-5xl font-bold mb-6"
           style={{ fontFamily: "var(--font-heading)" }}
@@ -244,18 +191,17 @@ function LandingPage() {
       <footer className="border-t border-border/50 bg-muted/30">
         <div className="max-w-6xl mx-auto px-6 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Brand */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">🍽️</span>
+                <span className="text-2xl" aria-hidden="true">🍽️</span>
                 <span className="text-lg font-bold gradient-text">freela-food</span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Conectando talentos da gastronomia a oportunidades. O marketplace dos melhores profissionais de food service.
+                Conectando talentos da gastronomia a oportunidades. O marketplace dos
+                melhores profissionais de food service.
               </p>
             </div>
 
-            {/* Links — Plataforma */}
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-3" style={{ fontFamily: "var(--font-sans)" }}>
                 Plataforma
@@ -267,7 +213,6 @@ function LandingPage() {
               </ul>
             </div>
 
-            {/* Links — Institucional */}
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-3" style={{ fontFamily: "var(--font-sans)" }}>
                 Institucional
@@ -279,7 +224,6 @@ function LandingPage() {
               </ul>
             </div>
 
-            {/* Contato */}
             <div>
               <h4 className="text-sm font-semibold text-foreground mb-3" style={{ fontFamily: "var(--font-sans)" }}>
                 Contato
@@ -303,7 +247,7 @@ function LandingPage() {
           <div className="divider-gradient mt-8 mb-6" />
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-            <p>© {new Date().getFullYear()} freela-food. Código aberto sob licença MIT.</p>
+            <p>&copy; 2026 freela-food. Código aberto sob licença MIT.</p>
             <div className="flex items-center gap-4">
               <Link href="/termos" className="hover:text-foreground transition-colors">Termos</Link>
               <Link href="/privacidade" className="hover:text-foreground transition-colors">Privacidade</Link>
@@ -311,6 +255,26 @@ function LandingPage() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="card-lift p-8 rounded-2xl bg-white border border-border/50 hover:border-primary/30">
+      <div className="stat-bubble bg-primary/10 mb-4">{icon}</div>
+      <h3 className="text-lg font-semibold text-foreground mb-3" style={{ fontFamily: "var(--font-sans)" }}>
+        {title}
+      </h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
 }

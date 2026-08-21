@@ -17,10 +17,14 @@ PWD = "Senha123!"
 
 
 def _anchor() -> tuple[float, float]:
-    # Âncora única por execução — DB da VPS é compartilhado.
+    """Gera coordenada âncora única e BEM distante de outras execuções.
+
+    Espalha por amplitude de 50° lat × 50° lng para evitar colisão
+    entre tests rodando em paralelo ou sequencialmente no mesmo DB.
+    """
     seed = uuid.uuid4().int
-    lat = -23.5 - (seed % 500) / 1000.0
-    lng = -47.5 - ((seed >> 32) % 500) / 1000.0
+    lat = -10.0 - (seed % 5000) / 100.0  # -10 a -60
+    lng = -30.0 - ((seed >> 32) % 5000) / 100.0  # -30 a -80
     return (lat, lng)
 
 
@@ -54,7 +58,7 @@ async def test_search_returns_nearby_freelancer(client: AsyncClient) -> None:
     resp = await client.get(
         "/v1/freelancers/search",
         headers={"Authorization": f"Bearer {token}"},
-        params={"latitude": anchor_lat, "longitude": anchor_lng, "radius_km": 10},
+        params={"latitude": anchor_lat, "longitude": anchor_lng, "radius_km": 5},
     )
     assert resp.status_code == 200, resp.text
     ids = {item["user_id"] for item in resp.json()["items"]}
@@ -69,7 +73,7 @@ async def test_search_excludes_far_freelancer(client: AsyncClient) -> None:
     resp = await client.get(
         "/v1/freelancers/search",
         headers={"Authorization": f"Bearer {token}"},
-        params={"latitude": anchor_lat, "longitude": anchor_lng, "radius_km": 10},
+        params={"latitude": anchor_lat, "longitude": anchor_lng, "radius_km": 5},
     )
     ids = {item["user_id"] for item in resp.json()["items"]}
     assert str(far_id) not in ids
@@ -77,14 +81,14 @@ async def test_search_excludes_far_freelancer(client: AsyncClient) -> None:
 
 async def test_search_orders_by_distance_ascending(client: AsyncClient) -> None:
     anchor_lat, anchor_lng = _anchor()
-    await _make_freelancer_at(anchor_lat + 0.04, anchor_lng)  # ~4 km
+    await _make_freelancer_at(anchor_lat + 0.02, anchor_lng)  # ~2 km
     await _make_freelancer_at(anchor_lat, anchor_lng)  # ~0 km
     token = await _establishment_token(client, anchor_lat, anchor_lng)
 
     resp = await client.get(
         "/v1/freelancers/search",
         headers={"Authorization": f"Bearer {token}"},
-        params={"latitude": anchor_lat, "longitude": anchor_lng, "radius_km": 10},
+        params={"latitude": anchor_lat, "longitude": anchor_lng, "radius_km": 5},
     )
     distances = [item["distance_m"] for item in resp.json()["items"]]
     assert distances == sorted(distances)
@@ -108,7 +112,7 @@ async def test_search_filters_by_skill(client: AsyncClient) -> None:
         params={
             "latitude": anchor_lat,
             "longitude": anchor_lng,
-            "radius_km": 10,
+            "radius_km": 5,
             "skill_category_id": str(skill_id),
         },
     )
