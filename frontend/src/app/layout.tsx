@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/toast";
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -16,9 +17,29 @@ const instrumentSerif = Instrument_Serif({
   style: ["normal", "italic"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#e85d2c",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
+
 export const metadata: Metadata = {
   title: "freela-food | Marketplace de Food Service",
   description: "Conectando talentos da gastronomia a oportunidades. Encontre vagas, gerencie contratos e cresça na carreira.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "freela-food",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: [
+    { rel: "icon", url: "/favicon.ico" },
+    { rel: "apple-touch-icon", url: "/icon-192.png" },
+  ],
 };
 
 export default function RootLayout({
@@ -31,6 +52,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans antialiased">
         {children}
         <ToastProvider />
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );
