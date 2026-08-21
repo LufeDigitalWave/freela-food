@@ -41,6 +41,9 @@ htmlcov/
 coverage.xml
 *.cover
 .hypothesis/
+test-results/
+playwright-report/
+.auth/
 
 # Type / lint caches
 .mypy_cache/
