@@ -7,7 +7,7 @@ Marketplace bidirecional para freelancers de food service (garçom, barman, cozi
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+PostGIS-336791?style=flat-square&logo=postgresql)
 ![Tests](https://img.shields.io/badge/Backend_testes-224-brightgreen?style=flat-square)
-![E2E](https://img.shields.io/badge/E2E_testes-37-brightgreen?style=flat-square)
+![E2E](https://img.shields.io/badge/E2E_testes-44-brightgreen?style=flat-square)
 ![Routes](https://img.shields.io/badge/Rotas-32-blue?style=flat-square)
 ![mypy](https://img.shields.io/badge/mypy-strict-blue?style=flat-square)
 ![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=flat-square&logo=github-actions)
@@ -32,10 +32,12 @@ O **freela-food** conecta profissionais de food service a estabelecimentos para 
 - **Admin dashboard** — stats, users, audit log, moderação
 - **Frontend premium** — Next.js + Tailwind + shadcn/ui, role-based UI
 - **224 testes backend** — integração + unitários, mypy --strict, Ruff
-- **37 E2E tests** — Playwright (landing, auth, nav, mobile, a11y)
+- **44 E2E tests** — Playwright (landing, auth, nav, mobile, a11y, PWA, performance)
 - **PWA ready** — Service Worker, manifest.json, offline support
 - **Accessibility** — WCAG AA: skip-links, aria-labels, landmarks, semantic HTML
 - **CI/CD** — GitHub Actions: lint + type-check + tests + E2E + build
+- **Observability** — Sentry error tracking, structlog, PII filter
+- **Performance** — gzip, AVIF/WebP, font-display swap, tree-shaking
 
 ## Stack
 
@@ -87,11 +89,24 @@ uv run pytest          # all tests
 uv run ruff check .    # lint
 uv run mypy app/       # type check
 
-# Frontend (37 E2E tests)
+# Frontend (44 E2E tests)
 cd frontend
 npx playwright test          # headless
 npx playwright test --ui     # visual UI
+
+# Bundle size analysis
+npm run build && node scripts/perf-check.js
 ```
+
+## Documentação Adicional
+
+- [CHANGELOG.md](./CHANGELOG.md) — histórico de releases
+- [CONTRIBUTING.md](./CONTRIBUTING.md) — como contribuir
+- [QUALITY_CHECKLIST.md](./QUALITY_CHECKLIST.md) — go/no-go criteria
+- [docs/RUNBOOKS.md](./docs/RUNBOOKS.md) — operações (deploy, backup, restore, rollback)
+- [docs/OBSERVABILITY.md](./docs/OBSERVABILITY.md) — Sentry, logging, metrics
+- [frontend/PWA.md](./frontend/PWA.md) — Progressive Web App guide
+- [frontend/e2e/README.md](./frontend/e2e/README.md) — test suite documentation
 
 ## Endpoints (~62)
 
