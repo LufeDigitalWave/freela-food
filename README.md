@@ -7,7 +7,7 @@ Marketplace bidirecional para freelancers de food service (garçom, barman, cozi
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+PostGIS-336791?style=flat-square&logo=postgresql)
 ![Tests](https://img.shields.io/badge/Backend_testes-224-brightgreen?style=flat-square)
-![E2E](https://img.shields.io/badge/E2E_testes-44-brightgreen?style=flat-square)
+![E2E](https://img.shields.io/badge/E2E_testes-53-brightgreen?style=flat-square)
 ![Routes](https://img.shields.io/badge/Rotas-32-blue?style=flat-square)
 ![mypy](https://img.shields.io/badge/mypy-strict-blue?style=flat-square)
 ![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=flat-square&logo=github-actions)
@@ -32,7 +32,7 @@ O **freela-food** conecta profissionais de food service a estabelecimentos para 
 - **Admin dashboard** — stats, users, audit log, moderação
 - **Frontend premium** — Next.js + Tailwind + shadcn/ui, role-based UI
 - **224 testes backend** — integração + unitários, mypy --strict, Ruff
-- **44 E2E tests** — Playwright (landing, auth, nav, mobile, a11y, PWA, performance)
+- **53 E2E tests** — Playwright (landing, auth, nav, mobile, a11y, PWA, performance, SEO)
 - **PWA ready** — Service Worker, manifest.json, offline support
 - **Accessibility** — WCAG AA: skip-links, aria-labels, landmarks, semantic HTML
 - **CI/CD** — GitHub Actions: lint + type-check + tests + E2E + build
@@ -89,7 +89,7 @@ uv run pytest          # all tests
 uv run ruff check .    # lint
 uv run mypy app/       # type check
 
-# Frontend (44 E2E tests)
+# Frontend (53 E2E tests)
 cd frontend
 npx playwright test          # headless
 npx playwright test --ui     # visual UI
@@ -162,6 +162,8 @@ tests/             → 224 testes
 - ✅ Sprint 15: Landing page pública + páginas institucionais
 - ✅ Sprint 16: E2E tests Playwright (37 tests)
 - ✅ Sprint 17: PWA (manifest, SW, offline) + WCAG AA accessibility
+- ✅ Sprint 18: Performance + Observability + SEO (robots, sitemap, server-render)
+- ✅ QA Review: 7/7 findings fixed (security, SEO, perf, test stability)
 - ✅ CI/CD: GitHub Actions (lint + type-check + tests + build + E2E)
 - 🔜 Domínio + HTTPS (Caddy TLS automático)
 - 🔜 Lighthouse performance optimization (target ≥ 90)
