@@ -4,11 +4,9 @@ Marketplace bidirecional para freelancers de food service (garçom, barman, cozi
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi)
-![Next.js](https://img.shields.io/badge/Next.js-14+-black?style=flat-square&logo=next.js)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+PostGIS-336791?style=flat-square&logo=postgresql)
-![Tests](https://img.shields.io/badge/testes-224-brightgreen?style=flat-square)
 ![mypy](https://img.shields.io/badge/mypy-strict-blue?style=flat-square)
-![License](https://img.shields.io/badge/licença-MIT-green?style=flat-square)
 
 ## O que é
 
@@ -20,20 +18,20 @@ O **freela-food** conecta profissionais de food service a estabelecimentos para 
 ## Destaques
 
 - **Geolocalização** — PostGIS `ST_DWithin` + geocoding Nominatim
-- **Matching IA** — scoring multi-fator (proximity, skill, rating, reliability, experience, repeat-hire)
+- **Matching determinístico** — scoring multi-fator (proximity, skill, rating, reliability, experience, repeat-hire)
 - **Reviews anti-retaliação** — visíveis só após ambos avaliarem ou 7 dias
 - **Moderação** — denúncias + fila admin + hide reviews
 - **Pagamentos** — registro + confirmação Pix + disputa
 - **LGPD** — CPF/CNPJ cifrados (pgcrypto), export, soft-delete + purge
 - **Admin dashboard** — stats, users, audit log, moderação
-- **Frontend premium** — Next.js + Tailwind + shadcn/ui, role-based UI
-- **224 testes** — integração + unitários, mypy --strict, Ruff
+- **Frontend por perfil de acesso** — Next.js + Tailwind + shadcn/ui
+- **Testes automatizados** — integração + unitários; verificações com mypy --strict e Ruff
 
 ## Stack
 
 | Backend | Frontend |
 |---|---|
-| Python 3.12 + uv | Next.js 14 (App Router) |
+| Python 3.12 + uv | Next.js 16 (App Router) |
 | FastAPI + Pydantic v2 | TypeScript |
 | SQLAlchemy 2 async + Alembic | Tailwind CSS + shadcn/ui |
 | Postgres 15 + PostGIS | Inter + Instrument Serif |
@@ -73,7 +71,7 @@ docker compose -f docker-compose.deploy.yml up -d
 ## Testes
 
 ```bash
-uv run pytest          # 224 testes
+uv run pytest          # suíte de testes
 uv run ruff check .    # lint
 uv run mypy app/       # type check
 ```
@@ -110,7 +108,7 @@ app/workers/       → ARQ cron jobs
 frontend/src/app/  → Next.js pages
 frontend/src/components/ → UI components
 alembic/versions/  → 8 migrations
-tests/             → 224 testes
+tests/             → testes unitários e de integração
 ```
 
 ## Roadmap
@@ -126,4 +124,4 @@ tests/             → 224 testes
 
 ## Licença
 
-MIT
+Este repositório ainda não inclui um arquivo de licença. A disponibilidade pública do código não deve ser interpretada como concessão de licença MIT. Para discutir condições de uso, entre em contato com o autor.
