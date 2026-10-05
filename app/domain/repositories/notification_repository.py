@@ -17,15 +17,16 @@ class NotificationRepository:
     async def create(
         self, *, user_id: uuid.UUID, type: str, payload: dict[str, Any]
     ) -> Notification:
-        # Setamos created_at explicitamente em Python pra garantir timestamps
-        # distintos entre emissões dentro da mesma transação (now() do PG é
-        # transaction_timestamp(), o que quebra ordenação por created_at quando
-        # múltiplas notifications são emitidas na mesma tx).
+        # created_at vem de clock_timestamp() do PG: distinto a cada INSERT, mesmo
+        # dentro da mesma transação (now() é transaction_timestamp() e empataria).
+        # Não usar datetime.now() do processo: no Windows o relógio avança em
+        # saltos de 1-16 ms e emissões em sequência empatavam, deixando a
+        # ordenação por created_at indefinida.
         notif = Notification(
             user_id=user_id,
             type=type,
             payload=payload,
-            created_at=datetime.now(UTC),
+            created_at=func.clock_timestamp(),
         )
         self._session.add(notif)
         await self._session.flush()
@@ -50,9 +51,7 @@ class NotificationRepository:
         if unread_only:
             base = base.where(Notification.read_at.is_(None))
 
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         unread = await self._session.scalar(
             select(func.count())
             .select_from(Notification)
@@ -63,7 +62,7 @@ class NotificationRepository:
         )
 
         result = await self._session.execute(
-            base.order_by(Notification.created_at.desc())
+            base.order_by(Notification.created_at.desc(), Notification.id.desc())
             .offset((page - 1) * page_size)
             .limit(page_size)
         )
@@ -93,9 +92,7 @@ class NotificationRepository:
         return int(result.rowcount or 0)
 
     async def delete(self, notif: Notification) -> None:
-        await self._session.execute(
-            delete(Notification).where(Notification.id == notif.id)
-        )
+        await self._session.execute(delete(Notification).where(Notification.id == notif.id))
         await self._session.flush()
 
     async def count_unread(self, user_id: uuid.UUID) -> int:

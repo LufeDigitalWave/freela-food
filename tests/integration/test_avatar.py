@@ -5,6 +5,8 @@ import uuid
 import httpx
 from httpx import AsyncClient
 
+from app.core.config import get_settings
+
 
 def _unique_email() -> str:
     return f"avatar-test-{uuid.uuid4()}@example.com"
@@ -49,7 +51,7 @@ async def test_upload_avatar_ok(client: AsyncClient) -> None:
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["avatar_url"].endswith(".png")
-    assert "freela-food-uploads" in data["avatar_url"]
+    assert get_settings().s3_bucket in data["avatar_url"]
 
     # Avatar deve estar acessível publicamente
     async with httpx.AsyncClient() as ext:
