@@ -19,7 +19,7 @@ PWD = "Senha123!"
 def _anchor() -> tuple[float, float]:
     """Gera coordenada âncora única e BEM distante de outras execuções.
 
-    Espalha por amplitude de 50° lat × 50° lng para evitar colisão
+    Espalha por amplitude de 50° lat x 50° lng para evitar colisão
     entre tests rodando em paralelo ou sequencialmente no mesmo DB.
     """
     seed = uuid.uuid4().int

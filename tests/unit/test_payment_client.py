@@ -1,7 +1,5 @@
 """Testes unitários para payment_client.py (webhook signature stub)."""
 
-import pytest
-
 from app.core.payment_client import PaymentClient
 
 

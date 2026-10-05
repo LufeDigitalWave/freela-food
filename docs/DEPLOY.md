@@ -8,8 +8,13 @@ Guia para deploy da stack freela-food.
 - Postgres + PostGIS, Redis 7, MinIO como Swarm services
 - Acesso SSH na VPS
 - Credenciais no arquivo `.env.deploy` (ver `.env.deploy.example`)
+- Chave do host da VPS em `~/.ssh/known_hosts`: o script recusa host desconhecido
+  (proteção contra MITM). Conecte uma vez com `ssh root@VPS_IP` e confira o fingerprint.
 
 ## Deploy Automatizado
+
+O script para no primeiro comando remoto que falhar (exit code != 0) e sai com código 1
+também quando o health check falha. O `.env` remoto é gravado com permissão `0600`.
 
 ```bash
 # 1. Preencher credenciais

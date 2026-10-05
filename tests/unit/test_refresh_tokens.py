@@ -3,8 +3,6 @@
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
 from app.core.refresh_tokens import (
     _hash,
     generate_refresh_token,

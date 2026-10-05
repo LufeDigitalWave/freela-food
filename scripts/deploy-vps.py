@@ -49,8 +49,23 @@ def load_env_file(path: str) -> dict[str, str]:
     return env
 
 
-def run_remote(ssh: paramiko.SSHClient, command: str, timeout: int = 300) -> tuple[str, str]:
-    """Executa comando remoto e retorna (stdout, stderr)."""
+class RemoteCommandError(RuntimeError):
+    """Comando remoto terminou com exit code diferente de zero."""
+
+    def __init__(self, command: str, exit_code: int, output: str) -> None:
+        super().__init__(f"exit {exit_code}: {command[:100]}")
+        self.command = command
+        self.exit_code = exit_code
+        self.output = output
+
+
+def run_remote(
+    ssh: paramiko.SSHClient, command: str, timeout: int = 300, check: bool = True
+) -> tuple[str, str]:
+    """Executa comando remoto e retorna (stdout, stderr).
+
+    Com check=True (padrão), exit code != 0 levanta RemoteCommandError.
+    """
     print(f"  → {command[:100]}{'...' if len(command) > 100 else ''}")
     _, stdout, stderr = ssh.exec_command(command, timeout=timeout)
     out = stdout.read().decode("utf-8", errors="replace")
@@ -60,7 +75,27 @@ def run_remote(ssh: paramiko.SSHClient, command: str, timeout: int = 300) -> tup
         print(f"    OUT: {out.strip()[:300]}")
     if err.strip() and exit_code != 0:
         print(f"    ERR: {err.strip()[:300]}")
+    if check and exit_code != 0:
+        raise RemoteCommandError(command, exit_code, out[-2000:] + err[-2000:])
     return out, err
+
+
+def connect_ssh(ssh: paramiko.SSHClient, host: str, user: str, password: str) -> None:
+    """Conecta exigindo chave de host conhecida (~/.ssh/known_hosts).
+
+    Host desconhecido é recusado (proteção contra MITM): conecte uma vez com
+    `ssh user@host` e confira o fingerprint antes de usar este script.
+    """
+    ssh.load_system_host_keys()
+    ssh.set_missing_host_key_policy(paramiko.RejectPolicy())
+    ssh.connect(host, username=user, password=password, timeout=30)
+
+
+def upload_env(sftp: paramiko.SFTPClient, remote_path: str, lines: list[str]) -> None:
+    """Grava o .env remoto com permissão 0600 antes de escrever os segredos."""
+    with sftp.file(remote_path, "w") as f:
+        sftp.chmod(remote_path, 0o600)
+        f.writelines(lines)
 
 
 def main() -> None:
@@ -92,9 +127,8 @@ def main() -> None:
     # ─── Conectar SSH ──────────────────────────────────
     print("[1/7] Conectando SSH...")
     ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     try:
-        ssh.connect(vps_host, username=vps_user, password=vps_pass, timeout=30)
+        connect_ssh(ssh, vps_host, vps_user, vps_pass)
         print("  ✓ SSH conectado\n")
     except Exception as e:
         print(f"  ✗ SSH falhou: {e}\n")
@@ -135,8 +169,7 @@ def main() -> None:
                     env_content_lines.append(line)
 
         sftp = ssh.open_sftp()
-        with sftp.file(f"{project_dir}/.env", "w") as f:
-            f.writelines(env_content_lines)
+        upload_env(sftp, f"{project_dir}/.env", env_content_lines)
         sftp.close()
         print(f"  ✓ .env criado em {project_dir}\n")
 
@@ -161,22 +194,28 @@ def main() -> None:
         # ─── Verify ───────────────────────────────────
         print("[7/7] Verificando saúde dos serviços...")
         out, _ = run_remote(
-            ssh, f"cd {project_dir} && docker compose -f {compose_file} ps"
+            ssh, f"cd {project_dir} && docker compose -f {compose_file} ps", check=False
         )
 
         # Health check via Caddy
         health_out, _ = run_remote(
             ssh, "curl -sf http://localhost/health || echo 'HEALTH_FAILED'"
         )
+        healthy = "HEALTH_FAILED" not in health_out
 
         print(f"\n{'='*60}")
-        print(f"  DEPLOY {'✓ SUCESSO' if 'HEALTH_FAILED' not in health_out else '⚠ PARCIAL'}")
+        print(f"  DEPLOY {'✓ SUCESSO' if healthy else '⚠ PARCIAL'}")
         print(f"{'='*60}")
         print(f"\n  Endpoints:")
         print(f"    API:    http://{vps_host}/health")
         print(f"    App:    http://{vps_host}/")
         print(f"\n  Logs: ssh {vps_user}@{vps_host} 'cd {project_dir} && docker compose -f {compose_file} logs -f'\n")
+        if not healthy:
+            sys.exit(1)
 
+    except RemoteCommandError as e:
+        print(f"\n  ✗ Deploy interrompido: {e}\n")
+        sys.exit(1)
     finally:
         ssh.close()
 
