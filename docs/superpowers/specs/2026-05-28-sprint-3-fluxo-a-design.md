@@ -320,7 +320,7 @@ Estrutura por arquivo já decidida — totais aproximados:
 
 1. Criar `alembic/versions/004_applications_contracts_notifications.py` com upgrade/downgrade testados localmente.
 2. Aplicar primeiro em dev local (`uv run alembic upgrade head`).
-3. Aplicar na VPS via SSH (`ssh root@93.127.211.7 -t "docker exec -it <api-container> alembic upgrade head"` — ou diretamente via psql como na Sprint 2 se a API ainda não tá deployada lá).
+3. Aplicar na VPS via SSH (`ssh root@<VPS_IP> -t "docker exec -it <api-container> alembic upgrade head"` — ou diretamente via psql como na Sprint 2 se a API ainda não tá deployada lá).
 4. Verificar `alembic_version` table.
 
 ## 15. Convenções respeitadas (CLAUDE.md)

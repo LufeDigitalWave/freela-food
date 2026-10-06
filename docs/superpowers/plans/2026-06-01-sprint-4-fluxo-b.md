@@ -245,7 +245,7 @@ asyncio.run((lambda: None)()) if False else None"
 ```
 Em vez disso, verificar via psql na VPS:
 ```bash
-ssh root@93.127.211.7 "docker exec \$(docker ps -qf name=freela_food_postgres | head -1) psql -U freela -d freela_food -tAc \"SELECT conname FROM pg_constraint WHERE conname='service_contracts_origin_check';\""
+ssh root@<VPS_IP> "docker exec \$(docker ps -qf name=freela_food_postgres | head -1) psql -U freela -d freela_food -tAc \"SELECT conname FROM pg_constraint WHERE conname='service_contracts_origin_check';\""
 ```
 Expected: `service_contracts_origin_check`
 
@@ -2506,7 +2506,7 @@ Expected: tudo verde. ~99 (Sprint 3) + ~39 (Sprint 4) = ~138 testes passando.
 
 Run:
 ```bash
-ssh root@93.127.211.7 "docker exec \$(docker ps -qf name=freela_food_postgres | head -1) psql -U freela -d freela_food -tAc \"SELECT version_num FROM alembic_version;\""
+ssh root@<VPS_IP> "docker exec \$(docker ps -qf name=freela_food_postgres | head -1) psql -U freela -d freela_food -tAc \"SELECT version_num FROM alembic_version;\""
 ```
 Expected: `005_invitations_origin` (já aplicada na Task 2; reconfirmar).
 

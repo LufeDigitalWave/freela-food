@@ -157,7 +157,7 @@ Foco em transformar demo em produto usável:
 
 ### VPS Status
 
-- Host: `93.127.211.7`
+- Host: `<VPS_IP>`
 - Postgres: porta 5435, migration `008_payments`
 - Redis: porta 6380
 - MinIO: portas 9000/9001

@@ -4228,13 +4228,13 @@ Expected: tudo verde. ~100 tests passando (46 antigos + 17 + 10 + 12 + 7 + 6 = ~
 - [ ] **Step 2: Aplicar migration na VPS**
 
 ```bash
-ssh root@93.127.211.7 -t "docker exec -i $(docker ps -qf name=freela_food_postgres | head -1) psql -U freela -d freela_food" < alembic/versions/004_applications_contracts_notifications.py
+ssh root@<VPS_IP> -t "docker exec -i $(docker ps -qf name=freela_food_postgres | head -1) psql -U freela -d freela_food" < alembic/versions/004_applications_contracts_notifications.py
 ```
 
 OU, se a API estiver containerizada com Alembic instalado:
 
 ```bash
-ssh root@93.127.211.7 -t "docker exec freela-food-api uv run alembic upgrade head"
+ssh root@<VPS_IP> -t "docker exec freela-food-api uv run alembic upgrade head"
 ```
 
 Verificar manualmente quais tabelas e qual abordagem aplica (igual fizemos na Sprint 2).
@@ -4244,13 +4244,13 @@ Expected: `Running upgrade 003_jobs_and_geo -> 004_apps_contracts_notif`.
 - [ ] **Step 3: Reiniciar ARQ worker na VPS (pra cron novo entrar)**
 
 ```bash
-ssh root@93.127.211.7 docker service update --force freela_food_arq_worker
+ssh root@<VPS_IP> docker service update --force freela_food_arq_worker
 ```
 
 Verificar nome real do service (ajustar se diferente). Conferir logs:
 
 ```bash
-ssh root@93.127.211.7 docker service logs --tail 20 freela_food_arq_worker
+ssh root@<VPS_IP> docker service logs --tail 20 freela_food_arq_worker
 ```
 
 Expected: `worker.startup` recente.

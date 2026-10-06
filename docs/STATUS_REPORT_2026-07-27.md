@@ -127,7 +127,7 @@ ServiceContract (origem polimórfica: application XOR invitation)
 Notification, AuditLog, Report
 ```
 
-### VPS (`93.127.211.7`)
+### VPS (`<VPS_IP>`)
 
 | Serviço | Porta | Estado |
 |---------|-------|--------|
@@ -274,10 +274,10 @@ Notification, AuditLog, Report
 | Recurso | Acesso |
 |---------|--------|
 | GitHub | https://github.com/LufeDigitalWave/freela-food |
-| VPS | `ssh root@93.127.211.7` |
-| Postgres | `93.127.211.7:5435` (user: freela, db: freela_food) |
-| Redis | `93.127.211.7:6380` |
-| MinIO Console | http://93.127.211.7:9001 |
+| VPS | `ssh root@<VPS_IP>` |
+| Postgres | `<VPS_IP>:5435` (user: freela, db: freela_food) |
+| Redis | `<VPS_IP>:6380` |
+| MinIO Console | http://<VPS_IP>:9001 |
 | Memória Claude | `C:\Users\luizf\.claude\projects\c--Users-luizf\memory\` |
 
 ---

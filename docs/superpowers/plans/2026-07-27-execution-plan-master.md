@@ -14,7 +14,7 @@
 | Branch | `main` — commit `45fc641` |
 | Backend | Python 3.12, FastAPI, 224 testes, 62 endpoints, mypy strict |
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind v4, shadcn/ui |
-| VPS | 93.127.211.7 — Postgres 5435, Redis 6380, MinIO 9000/9001 |
+| VPS | <VPS_IP> — Postgres 5435, Redis 6380, MinIO 9000/9001 |
 | Migration | `008_payments` (confirmado) |
 | Skills usadas | `/brainstorming`, `/ui-ux-pro-max`, `/shadcn`, `/fastapi-python`, `/code-review`, `/verify` |
 

@@ -4,7 +4,7 @@
 
 ## 1. Objetivo
 
-Deployar o freela-food completo (backend + worker + frontend) na VPS existente (`93.127.211.7`) com TLS, healthcheck e scripts operacionais mínimos.
+Deployar o freela-food completo (backend + worker + frontend) na VPS existente (`<VPS_IP>`) com TLS, healthcheck e scripts operacionais mínimos.
 
 ## 2. Escopo
 
