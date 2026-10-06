@@ -316,7 +316,7 @@ User (freelancer | establishment | admin)
 
 ## 10. Infraestrutura
 
-### VPS (93.127.211.7)
+### VPS (<VPS_IP>)
 
 | Serviço | Status | Portas |
 |---------|--------|--------|

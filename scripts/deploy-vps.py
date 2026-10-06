@@ -3,7 +3,7 @@
 Script de deploy freela-food na VPS.
 
 Credentials são lidas de variáveis de ambiente:
-  export VPS_HOST=93.127.211.7
+  export VPS_HOST=<VPS_IP>
   export VPS_USER=root
   export VPS_PASSWORD=xxx
   export DEPLOY_ENV_FILE=.env.deploy

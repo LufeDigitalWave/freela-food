@@ -2,7 +2,7 @@
 
 Procedimentos passo-a-passo para operações comuns em produção.
 
-## 1. Deploy Inicial (VPS 93.127.211.7)
+## 1. Deploy Inicial (VPS <VPS_IP>)
 
 **Requisitos:**
 - VPS Ubuntu 24.04
@@ -14,7 +14,7 @@ Procedimentos passo-a-passo para operações comuns em produção.
 
 ```bash
 # 1. SSH na VPS
-ssh root@93.127.211.7
+ssh root@<VPS_IP>
 
 # 2. Clonar repo
 cd /opt

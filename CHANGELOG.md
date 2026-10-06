@@ -72,7 +72,7 @@ e este projeto segue [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - MinIO (S3-compatible)
 - Alembic migrations
 - Docker multi-stage build
-- VPS deployment (93.127.211.7)
+- VPS deployment (<VPS_IP>)
 
 ---
 
