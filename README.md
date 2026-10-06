@@ -6,13 +6,8 @@ Marketplace bidirecional para freelancers de food service (garçom, barman, cozi
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi)
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+PostGIS-336791?style=flat-square&logo=postgresql)
-![Tests](https://img.shields.io/badge/Backend_testes-224-brightgreen?style=flat-square)
-![E2E](https://img.shields.io/badge/E2E_testes-53-brightgreen?style=flat-square)
-![Routes](https://img.shields.io/badge/Rotas-32-blue?style=flat-square)
 ![mypy](https://img.shields.io/badge/mypy-strict-blue?style=flat-square)
 ![CI](https://img.shields.io/badge/CI-GitHub_Actions-2088FF?style=flat-square&logo=github-actions)
-![PWA](https://img.shields.io/badge/PWA-Ready-orange?style=flat-square&logo=pwa)
-![License](https://img.shields.io/badge/licença-MIT-green?style=flat-square)
 
 ## O que é
 
@@ -24,20 +19,19 @@ O **freela-food** conecta profissionais de food service a estabelecimentos para 
 ## Destaques
 
 - **Geolocalização** — PostGIS `ST_DWithin` + geocoding Nominatim
-- **Matching IA** — scoring multi-fator (proximity, skill, rating, reliability, experience, repeat-hire)
+- **Matching determinístico** — scoring multi-fator (proximity, skill, rating, reliability, experience, repeat-hire)
 - **Reviews anti-retaliação** — visíveis só após ambos avaliarem ou 7 dias
 - **Moderação** — denúncias + fila admin + hide reviews
 - **Pagamentos** — registro + confirmação Pix + disputa
 - **LGPD** — CPF/CNPJ cifrados (pgcrypto), export, soft-delete + purge
 - **Admin dashboard** — stats, users, audit log, moderação
-- **Frontend premium** — Next.js + Tailwind + shadcn/ui, role-based UI
-- **224 testes backend** — integração + unitários, mypy --strict, Ruff
-- **53 E2E tests** — Playwright (landing, auth, nav, mobile, a11y, PWA, performance, SEO)
-- **PWA ready** — Service Worker, manifest.json, offline support
-- **Accessibility** — WCAG AA: skip-links, aria-labels, landmarks, semantic HTML
-- **CI/CD** — GitHub Actions: lint + type-check + tests + E2E + build
-- **Observability** — Sentry error tracking, structlog, PII filter
-- **Performance** — gzip, AVIF/WebP, font-display swap, tree-shaking
+- **Frontend por perfil de acesso** — Next.js + Tailwind + shadcn/ui
+- **Testes automatizados** — integração + unitários; verificações com mypy --strict e Ruff
+- **Testes E2E** — Playwright (landing, auth, navegação, mobile, acessibilidade básica, PWA, SEO)
+- **PWA** — manifest.json, Service Worker e página offline
+- **Acessibilidade básica** — skip-links, aria-labels e landmarks nas páginas públicas
+- **CI** — GitHub Actions: lint, type-check, testes, build e E2E
+- **Observabilidade** — structlog e integração opcional com Sentry, com filtro de dados pessoais
 
 ## Stack
 
@@ -46,11 +40,11 @@ O **freela-food** conecta profissionais de food service a estabelecimentos para 
 | Python 3.12 + uv | Next.js 16 (App Router) |
 | FastAPI + Pydantic v2 | React 19 + TypeScript |
 | SQLAlchemy 2 async + Alembic | Tailwind CSS v4 + shadcn/ui |
-| Postgres 15 + PostGIS | Inter + Instrument Serif (next/font) |
-| Redis 7 + ARQ | Responsive, mobile-first design |
-| MinIO (S3) | 32 rotas (landing + dashboard + admin) |
-| JWT HS256 + bcrypt | 37 E2E tests (Playwright) |
-| structlog + Sentry | PWA ready (manifest + SW) |
+| Postgres 15 + PostGIS | Inter + Instrument Serif |
+| Redis 7 + ARQ | Axios |
+| MinIO (S3) | Docker standalone |
+| JWT HS256 + bcrypt | Playwright (E2E) |
+| structlog + Sentry (opcional) | PWA (manifest + Service Worker) |
 
 ## Como rodar
 
@@ -84,12 +78,12 @@ docker compose -f docker-compose.deploy.yml up -d
 ## Testes
 
 ```bash
-# Backend (224 testes integração)
-uv run pytest          # all tests
+# Backend
+uv run pytest          # suíte de testes
 uv run ruff check .    # lint
 uv run mypy app/       # type check
 
-# Frontend (53 E2E tests)
+# Frontend (E2E)
 cd frontend
 npx playwright test          # headless
 npx playwright test --ui     # visual UI
@@ -108,7 +102,7 @@ npm run build && node scripts/perf-check.js
 - [frontend/PWA.md](./frontend/PWA.md) — Progressive Web App guide
 - [frontend/e2e/README.md](./frontend/e2e/README.md) — test suite documentation
 
-## Endpoints (~62)
+## Endpoints
 
 <details>
 <summary>Ver lista completa</summary>
@@ -134,15 +128,15 @@ Webhooks:       POST /webhooks/asaas
 ## Arquitetura
 
 ```
-app/api/v1/        → Routers FastAPI (62 endpoints)
+app/api/v1/        → Routers FastAPI
 app/domain/models/ → SQLAlchemy models
 app/domain/schemas/→ Pydantic schemas
 app/domain/services/→ Business logic
 app/workers/       → ARQ cron jobs
-frontend/src/app/  → Next.js pages (30 routes)
+frontend/src/app/  → Next.js pages
 frontend/src/components/ → UI components (shadcn/ui)
 alembic/versions/  → 8 migrations
-tests/             → 224 testes
+tests/             → testes unitários e de integração
 .github/workflows/ → CI pipeline
 ```
 
@@ -160,8 +154,8 @@ tests/             → 224 testes
 - ✅ Sprint 13: Gateway Pix skeleton (Asaas)
 - ✅ Sprint 14: Admin frontend (6 páginas)
 - ✅ Sprint 15: Landing page pública + páginas institucionais
-- ✅ Sprint 16: E2E tests Playwright (37 tests)
-- ✅ Sprint 17: PWA (manifest, SW, offline) + WCAG AA accessibility
+- ✅ Sprint 16: testes E2E com Playwright
+- ✅ Sprint 17: PWA (manifest, SW, offline) + acessibilidade básica
 - ✅ Sprint 18: Performance + Observability + SEO (robots, sitemap, server-render)
 - ✅ QA Review: 7/7 findings fixed (security, SEO, perf, test stability)
 - ✅ CI/CD: GitHub Actions (lint + type-check + tests + build + E2E)
@@ -171,4 +165,4 @@ tests/             → 224 testes
 
 ## Licença
 
-MIT
+Este repositório ainda não inclui um arquivo de licença. A disponibilidade pública do código não deve ser interpretada como concessão de licença MIT. Para discutir condições de uso, entre em contato com o autor.
