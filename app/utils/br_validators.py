@@ -38,12 +38,12 @@ def is_valid_cnpj(cnpj: str) -> bool:
     weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
     weights2 = [6, *weights1]
     s1 = sum(int(cnpj[i]) * weights1[i] for i in range(12))
-    d1 = (s1 % 11)
+    d1 = s1 % 11
     d1 = 0 if d1 < 2 else 11 - d1
     if d1 != int(cnpj[12]):
         return False
     s2 = sum(int(cnpj[i]) * weights2[i] for i in range(13))
-    d2 = (s2 % 11)
+    d2 = s2 % 11
     d2 = 0 if d2 < 2 else 11 - d2
     return d2 == int(cnpj[13])
 

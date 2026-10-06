@@ -28,9 +28,7 @@ async def create_report(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> ReportRead:
-    return await ModerationService(session).create_report(
-        user_id=user_id, payload=payload
-    )
+    return await ModerationService(session).create_report(user_id=user_id, payload=payload)
 
 
 @router.get(

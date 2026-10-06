@@ -102,17 +102,13 @@ class InvitationRepository:
         page_size: int,
     ) -> tuple[list[Invitation], int]:
         col = (
-            Invitation.establishment_id
-            if as_role == "establishment"
-            else Invitation.freelancer_id
+            Invitation.establishment_id if as_role == "establishment" else Invitation.freelancer_id
         )
         conditions = [col == user_id]
         if status_filter is not None:
             conditions.append(Invitation.status == status_filter)
         base = select(Invitation).where(and_(*conditions))
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
             base.order_by(Invitation.created_at.desc())
             .offset((page - 1) * page_size)

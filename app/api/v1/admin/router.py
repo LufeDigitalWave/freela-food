@@ -86,9 +86,7 @@ async def deactivate_user(
     admin_id: AdminIdDep,
     session: SessionDep,
 ) -> AdminUserRead:
-    return await AdminService(session).deactivate_user(
-        admin_id=admin_id, user_id=user_id
-    )
+    return await AdminService(session).deactivate_user(admin_id=admin_id, user_id=user_id)
 
 
 @router.post(
@@ -101,9 +99,7 @@ async def reactivate_user(
     admin_id: AdminIdDep,
     session: SessionDep,
 ) -> AdminUserRead:
-    return await AdminService(session).reactivate_user(
-        admin_id=admin_id, user_id=user_id
-    )
+    return await AdminService(session).reactivate_user(admin_id=admin_id, user_id=user_id)
 
 
 @router.get(
@@ -198,9 +194,7 @@ async def hide_review(
     admin_id: AdminIdDep,
     session: SessionDep,
 ) -> None:
-    await ModerationService(session).hide_review(
-        admin_id=admin_id, review_id=review_id
-    )
+    await ModerationService(session).hide_review(admin_id=admin_id, review_id=review_id)
 
 
 @router.post(
@@ -213,9 +207,7 @@ async def unhide_review(
     admin_id: AdminIdDep,
     session: SessionDep,
 ) -> None:
-    await ModerationService(session).unhide_review(
-        admin_id=admin_id, review_id=review_id
-    )
+    await ModerationService(session).unhide_review(admin_id=admin_id, review_id=review_id)
 
 
 # ── Payments (Sprint 9) ──────────────────────────────────────────────────────

@@ -35,6 +35,4 @@ class ReviewList(BaseModel):
 class ReviewStats(BaseModel):
     average_rating: float | None
     total_reviews: int
-    distribution: dict[int, int] = Field(
-        default_factory=lambda: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
-    )
+    distribution: dict[int, int] = Field(default_factory=lambda: {1: 0, 2: 0, 3: 0, 4: 0, 5: 0})

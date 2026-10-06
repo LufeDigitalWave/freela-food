@@ -93,9 +93,7 @@ async def get_application(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> ApplicationRead:
-    return await ApplicationService(session).get_by_id(
-        user_id=user_id, app_id=application_id
-    )
+    return await ApplicationService(session).get_by_id(user_id=user_id, app_id=application_id)
 
 
 @router.post(
@@ -108,9 +106,7 @@ async def reject_application(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> ApplicationRead:
-    return await ApplicationService(session).reject(
-        user_id=user_id, app_id=application_id
-    )
+    return await ApplicationService(session).reject(user_id=user_id, app_id=application_id)
 
 
 @router.post(
@@ -123,9 +119,7 @@ async def withdraw_application(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> ApplicationRead:
-    return await ApplicationService(session).withdraw(
-        user_id=user_id, app_id=application_id
-    )
+    return await ApplicationService(session).withdraw(user_id=user_id, app_id=application_id)
 
 
 @router.post(
@@ -138,6 +132,4 @@ async def accept_application(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> ApplicationRead:
-    return await ApplicationService(session).accept(
-        user_id=user_id, app_id=application_id
-    )
+    return await ApplicationService(session).accept(user_id=user_id, app_id=application_id)

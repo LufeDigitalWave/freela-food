@@ -21,9 +21,7 @@ class AdminRepository:
     # ── Stats ─────────────────────────────────────────────────────────────────
 
     async def count_users_by_role(self) -> dict[str, int]:
-        result = await self._session.execute(
-            select(User.role, func.count()).group_by(User.role)
-        )
+        result = await self._session.execute(select(User.role, func.count()).group_by(User.role))
         counts: dict[str, int] = {"freelancer": 0, "establishment": 0, "admin": 0}
         for role, count in result.all():
             counts[role] = int(count)
@@ -40,8 +38,7 @@ class AdminRepository:
 
     async def count_contracts_by_status(self) -> dict[str, int]:
         result = await self._session.execute(
-            select(ServiceContract.status, func.count())
-            .group_by(ServiceContract.status)
+            select(ServiceContract.status, func.count()).group_by(ServiceContract.status)
         )
         counts: dict[str, int] = {}
         for status, count in result.all():
@@ -49,15 +46,11 @@ class AdminRepository:
         return counts
 
     async def count_reviews(self) -> int:
-        result = await self._session.scalar(
-            select(func.count()).select_from(Review)
-        )
+        result = await self._session.scalar(select(func.count()).select_from(Review))
         return int(result or 0)
 
     async def count_notifications(self) -> int:
-        result = await self._session.scalar(
-            select(func.count()).select_from(Notification)
-        )
+        result = await self._session.scalar(select(func.count()).select_from(Notification))
         return int(result or 0)
 
     # ── Users ─────────────────────────────────────────────────────────────────
@@ -79,20 +72,14 @@ class AdminRepository:
         if email_search:
             base = base.where(User.email.ilike(f"%{email_search}%"))
 
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
-            base.order_by(User.created_at.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+            base.order_by(User.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         )
         return list(result.scalars().all()), int(total or 0)
 
     async def get_user_by_id(self, user_id: uuid.UUID) -> User | None:
-        result = await self._session.execute(
-            select(User).where(User.id == user_id)
-        )
+        result = await self._session.execute(select(User).where(User.id == user_id))
         return result.scalar_one_or_none()
 
     async def count_user_contracts(self, user_id: uuid.UUID) -> int:
@@ -110,17 +97,13 @@ class AdminRepository:
 
     async def count_user_reviews_given(self, user_id: uuid.UUID) -> int:
         result = await self._session.scalar(
-            select(func.count())
-            .select_from(Review)
-            .where(Review.reviewer_id == user_id)
+            select(func.count()).select_from(Review).where(Review.reviewer_id == user_id)
         )
         return int(result or 0)
 
     async def count_user_reviews_received(self, user_id: uuid.UUID) -> int:
         result = await self._session.scalar(
-            select(func.count())
-            .select_from(Review)
-            .where(Review.reviewee_id == user_id)
+            select(func.count()).select_from(Review).where(Review.reviewee_id == user_id)
         )
         return int(result or 0)
 
@@ -149,9 +132,7 @@ class AdminRepository:
         if until:
             base = base.where(AuditLog.created_at <= until)
 
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
             base.order_by(AuditLog.created_at.desc())
             .offset((page - 1) * page_size)

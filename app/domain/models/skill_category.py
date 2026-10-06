@@ -9,7 +9,5 @@ from app.domain.models.base import Base, TimestampMixin, UUIDPKMixin
 class SkillCategory(Base, UUIDPKMixin, TimestampMixin):
     __tablename__ = "skill_categories"
 
-    slug: Mapped[str] = mapped_column(
-        String(50), unique=True, nullable=False, index=True
-    )
+    slug: Mapped[str] = mapped_column(String(50), unique=True, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(100), nullable=False)

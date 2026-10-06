@@ -161,9 +161,7 @@ async def advance_contract_lifecycle(_ctx: dict[str, Any]) -> dict[str, int]:
 
                 # Buscar pix_key do freelancer
                 fl_pix: str | None = await session.scalar(
-                    select(FreelancerProfile.pix_key).where(
-                        FreelancerProfile.user_id == row[1]
-                    )
+                    select(FreelancerProfile.pix_key).where(FreelancerProfile.user_id == row[1])
                 )
                 session.add(
                     Payment(

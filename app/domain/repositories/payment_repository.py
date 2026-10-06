@@ -40,9 +40,7 @@ class PaymentRepository:
         return result.scalar_one_or_none()
 
     async def get_by_id(self, payment_id: uuid.UUID) -> Payment | None:
-        result = await self._session.execute(
-            select(Payment).where(Payment.id == payment_id)
-        )
+        result = await self._session.execute(select(Payment).where(Payment.id == payment_id))
         return result.scalar_one_or_none()
 
     async def list_for_user(
@@ -67,13 +65,9 @@ class PaymentRepository:
         if status_filter:
             base = base.where(Payment.status == status_filter)
 
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
-            base.order_by(Payment.created_at.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+            base.order_by(Payment.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         )
         return list(result.scalars().all()), int(total or 0)
 
@@ -89,12 +83,8 @@ class PaymentRepository:
         if status_filter:
             base = base.where(Payment.status == status_filter)
 
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
-            base.order_by(Payment.created_at.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+            base.order_by(Payment.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         )
         return list(result.scalars().all()), int(total or 0)

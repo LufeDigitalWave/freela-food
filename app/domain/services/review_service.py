@@ -60,9 +60,7 @@ class ReviewService:
             raise ReviewWindowClosed()
 
         # Sem duplicata
-        existing = await self._repo.get_by_contract_and_reviewer(
-            contract_id, user_id
-        )
+        existing = await self._repo.get_by_contract_and_reviewer(contract_id, user_id)
         if existing is not None:
             raise DuplicateReview()
 
@@ -145,15 +143,11 @@ class ReviewService:
         now = datetime.now(UTC)
         for r in reviews:
             # User vê sua própria review OU a do outro se visible_at preenchido
-            if r.reviewer_id == user_id or (
-                r.visible_at is not None and r.visible_at <= now
-            ):
+            if r.reviewer_id == user_id or (r.visible_at is not None and r.visible_at <= now):
                 result.append(await self._to_read(r))
         return result
 
-    async def list_received(
-        self, *, user_id: uuid.UUID, page: int, page_size: int
-    ) -> ReviewList:
+    async def list_received(self, *, user_id: uuid.UUID, page: int, page_size: int) -> ReviewList:
         """Todas reviews recebidas pelo user (/me/reviews)."""
         items, total = await self._repo.list_received_for_user(
             user_id, page=page, page_size=page_size
@@ -165,9 +159,7 @@ class ReviewService:
             page_size=page_size,
         )
 
-    async def list_public(
-        self, *, reviewee_id: uuid.UUID, page: int, page_size: int
-    ) -> ReviewList:
+    async def list_public(self, *, reviewee_id: uuid.UUID, page: int, page_size: int) -> ReviewList:
         """Reviews visíveis de um perfil (endpoint público)."""
         items, total = await self._repo.list_visible_for_user(
             reviewee_id, page=page, page_size=page_size
@@ -194,24 +186,18 @@ class ReviewService:
 
     # ── Helpers privados ──────────────────────────────────────────────────────
 
-    async def _update_rating(
-        self, reviewee_id: uuid.UUID, new_stars: int
-    ) -> None:
+    async def _update_rating(self, reviewee_id: uuid.UUID, new_stars: int) -> None:
         """Atualiza rating agregado no perfil do reviewee (fórmula incremental)."""
         # Tentar freelancer profile primeiro
         fp = await self._session.scalar(
-            select(FreelancerProfile).where(
-                FreelancerProfile.user_id == reviewee_id
-            )
+            select(FreelancerProfile).where(FreelancerProfile.user_id == reviewee_id)
         )
         if fp is not None:
             new_total = fp.total_reviews + 1
             if fp.average_rating is None:
                 new_avg = Decimal(new_stars)
             else:
-                new_avg = (
-                    (fp.average_rating * (new_total - 1) + new_stars) / new_total
-                )
+                new_avg = (fp.average_rating * (new_total - 1) + new_stars) / new_total
             await self._session.execute(
                 update(FreelancerProfile)
                 .where(FreelancerProfile.user_id == reviewee_id)
@@ -224,18 +210,14 @@ class ReviewService:
 
         # Senão, establishment profile
         ep = await self._session.scalar(
-            select(EstablishmentProfile).where(
-                EstablishmentProfile.user_id == reviewee_id
-            )
+            select(EstablishmentProfile).where(EstablishmentProfile.user_id == reviewee_id)
         )
         if ep is not None:
             new_total = ep.total_reviews + 1
             if ep.average_rating is None:
                 new_avg = Decimal(new_stars)
             else:
-                new_avg = (
-                    (ep.average_rating * (new_total - 1) + new_stars) / new_total
-                )
+                new_avg = (ep.average_rating * (new_total - 1) + new_stars) / new_total
             await self._session.execute(
                 update(EstablishmentProfile)
                 .where(EstablishmentProfile.user_id == reviewee_id)
@@ -264,9 +246,7 @@ class ReviewService:
         """Resolve display_name do reviewer (freelancer ou establishment)."""
         # Tenta freelancer
         fp: str | None = await self._session.scalar(
-            select(FreelancerProfile.display_name).where(
-                FreelancerProfile.user_id == user_id
-            )
+            select(FreelancerProfile.display_name).where(FreelancerProfile.user_id == user_id)
         )
         if fp is not None:
             return fp

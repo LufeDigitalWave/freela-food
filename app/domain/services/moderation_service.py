@@ -34,9 +34,7 @@ class ModerationService:
 
     # ── User-facing ───────────────────────────────────────────────────────────
 
-    async def create_report(
-        self, *, user_id: uuid.UUID, payload: ReportCreate
-    ) -> ReportRead:
+    async def create_report(self, *, user_id: uuid.UUID, payload: ReportCreate) -> ReportRead:
         """Cria denúncia. User não pode reportar a si mesmo."""
         # Self-report check
         if payload.target_type == "user" and payload.target_id == user_id:
@@ -77,9 +75,7 @@ class ModerationService:
         await self._session.commit()
         return ReportRead.model_validate(report)
 
-    async def list_my_reports(
-        self, *, user_id: uuid.UUID, page: int, page_size: int
-    ) -> ReportList:
+    async def list_my_reports(self, *, user_id: uuid.UUID, page: int, page_size: int) -> ReportList:
         items, total = await self._reports.list_for_reporter(
             user_id, page=page, page_size=page_size
         )
@@ -115,9 +111,7 @@ class ModerationService:
             page_size=page_size,
         )
 
-    async def get_report(
-        self, *, report_id: uuid.UUID
-    ) -> ReportRead:
+    async def get_report(self, *, report_id: uuid.UUID) -> ReportRead:
         report = await self._reports.get_by_id(report_id)
         if report is None:
             raise NotFoundError("Denúncia não encontrada")
@@ -165,12 +159,8 @@ class ModerationService:
         await self._session.refresh(report)
         return ReportRead.model_validate(report)
 
-    async def hide_review(
-        self, *, admin_id: uuid.UUID, review_id: uuid.UUID
-    ) -> None:
-        review = await self._session.scalar(
-            select(Review).where(Review.id == review_id)
-        )
+    async def hide_review(self, *, admin_id: uuid.UUID, review_id: uuid.UUID) -> None:
+        review = await self._session.scalar(select(Review).where(Review.id == review_id))
         if review is None:
             raise NotFoundError("Review não encontrada")
         if review.hidden_at is not None:
@@ -197,12 +187,8 @@ class ModerationService:
 
         await self._session.commit()
 
-    async def unhide_review(
-        self, *, admin_id: uuid.UUID, review_id: uuid.UUID
-    ) -> None:
-        review = await self._session.scalar(
-            select(Review).where(Review.id == review_id)
-        )
+    async def unhide_review(self, *, admin_id: uuid.UUID, review_id: uuid.UUID) -> None:
+        review = await self._session.scalar(select(Review).where(Review.id == review_id))
         if review is None:
             raise NotFoundError("Review não encontrada")
         if review.hidden_at is None:

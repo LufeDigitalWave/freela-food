@@ -44,9 +44,7 @@ async def list_contract_reviews(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> list[ReviewRead]:
-    return await ReviewService(session).list_for_contract(
-        user_id=user_id, contract_id=contract_id
-    )
+    return await ReviewService(session).list_for_contract(user_id=user_id, contract_id=contract_id)
 
 
 @router.get(

@@ -103,9 +103,7 @@ async def test_list_users_email_search(client: AsyncClient) -> None:
     admin_email, headers = await _create_admin(client)
     # Search por parte do email do admin
     search_term = admin_email.split("@")[0]
-    resp = await client.get(
-        f"/v1/admin/users?email_search={search_term}", headers=headers
-    )
+    resp = await client.get(f"/v1/admin/users?email_search={search_term}", headers=headers)
     assert resp.status_code == 200
     body = resp.json()
     assert body["total"] >= 1
@@ -208,9 +206,7 @@ async def test_audit_log_filter_by_action(client: AsyncClient) -> None:
         fl_id = fl.id
     await client.post(f"/v1/admin/users/{fl_id}/deactivate", headers=headers)
 
-    resp = await client.get(
-        "/v1/admin/audit-log?action=deactivate", headers=headers
-    )
+    resp = await client.get("/v1/admin/audit-log?action=deactivate", headers=headers)
     assert resp.status_code == 200
     body = resp.json()
     assert all(a["action"] == "deactivate" for a in body["items"])

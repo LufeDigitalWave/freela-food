@@ -26,9 +26,7 @@ class AuditLog(Base, UUIDPKMixin):
     entity_id: Mapped[uuid.UUID | None] = mapped_column(
         PG_UUID(as_uuid=True), nullable=True, index=True
     )
-    diff: Mapped[dict[str, Any]] = mapped_column(
-        JSONB, nullable=False, server_default="{}"
-    )
+    diff: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False, server_default="{}")
     ip: Mapped[str | None] = mapped_column(String(45), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(

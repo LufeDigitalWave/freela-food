@@ -20,9 +20,7 @@ from app.domain.models.base import Base, TimestampMixin, UUIDPKMixin
 class Application(Base, UUIDPKMixin, TimestampMixin):
     __tablename__ = "applications"
     __table_args__ = (
-        UniqueConstraint(
-            "job_posting_id", "freelancer_id", name="uq_applications_job_freelancer"
-        ),
+        UniqueConstraint("job_posting_id", "freelancer_id", name="uq_applications_job_freelancer"),
         CheckConstraint(
             "status IN ('pending', 'accepted', 'rejected', 'withdrawn')",
             name="applications_status_check",
@@ -47,6 +45,4 @@ class Application(Base, UUIDPKMixin, TimestampMixin):
         String(20), nullable=False, default="pending", server_default="pending"
     )
     message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    decided_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

@@ -21,9 +21,7 @@ class NotificationService:
         self._session = session
         self._repo = NotificationRepository(session)
 
-    async def emit(
-        self, *, user_id: uuid.UUID, type: str, payload: dict[str, Any]
-    ) -> Notification:
+    async def emit(self, *, user_id: uuid.UUID, type: str, payload: dict[str, Any]) -> Notification:
         """Cria notification. Chamado por outros services dentro da própria tx."""
         return await self._repo.create(user_id=user_id, type=type, payload=payload)
 
@@ -49,9 +47,7 @@ class NotificationService:
             page_size=page_size,
         )
 
-    async def mark_read(
-        self, *, user_id: uuid.UUID, notif_id: uuid.UUID
-    ) -> NotificationRead:
+    async def mark_read(self, *, user_id: uuid.UUID, notif_id: uuid.UUID) -> NotificationRead:
         notif = await self._repo.get_by_id(notif_id)
         if notif is None:
             raise NotificationNotFound()
@@ -65,9 +61,7 @@ class NotificationService:
         n = await self._repo.mark_all_read(user_id)
         return ReadAllResponse(updated=n)
 
-    async def delete(
-        self, *, user_id: uuid.UUID, notif_id: uuid.UUID
-    ) -> None:
+    async def delete(self, *, user_id: uuid.UUID, notif_id: uuid.UUID) -> None:
         notif = await self._repo.get_by_id(notif_id)
         if notif is None:
             raise NotificationNotFound()

@@ -27,6 +27,7 @@ async def _setup_job_with_freelancers() -> dict:
     suffix = uuid.uuid4().hex[:8]
     # Coordenadas aleatórias por run pra não colidir com outros testes no DB compartilhado
     import random
+
     base_lat = random.uniform(30.0, 60.0)
     base_lng = random.uniform(-10.0, 30.0)
     async with SessionLocal() as session:
@@ -47,9 +48,7 @@ async def _setup_job_with_freelancers() -> dict:
         fl1, fp1 = await make_freelancer(
             session, email=f"fl1-{suffix}@test.com", lat=base_lat + 0.001, lng=base_lng + 0.001
         )
-        await make_freelancer_skill(
-            session, freelancer_user_id=fl1.id, skill_category_id=cat.id
-        )
+        await make_freelancer_skill(session, freelancer_user_id=fl1.id, skill_category_id=cat.id)
         fp1.average_rating = Decimal("4.50")
         fp1.total_reviews = 10
         fp1.completed_contracts_count = 15
@@ -58,9 +57,7 @@ async def _setup_job_with_freelancers() -> dict:
         fl2, _fp2 = await make_freelancer(
             session, email=f"fl2-{suffix}@test.com", lat=base_lat + 0.002, lng=base_lng + 0.002
         )
-        await make_freelancer_skill(
-            session, freelancer_user_id=fl2.id, skill_category_id=cat.id
-        )
+        await make_freelancer_skill(session, freelancer_user_id=fl2.id, skill_category_id=cat.id)
 
         # Freelancer 3: mais longe, sem skill, rating mediano
         fl3, fp3 = await make_freelancer(
@@ -148,9 +145,7 @@ async def test_job_not_found() -> None:
 async def test_endpoint_matches(client: AsyncClient) -> None:
     ctx = await _setup_job_with_freelancers()
     headers = await auth_header_for(client, ctx["est_email"])
-    resp = await client.get(
-        f"/v1/jobs/{ctx['job_id']}/matches?radius_km=50", headers=headers
-    )
+    resp = await client.get(f"/v1/jobs/{ctx['job_id']}/matches?radius_km=50", headers=headers)
     assert resp.status_code == 200
     body = resp.json()
     assert "items" in body
@@ -170,13 +165,9 @@ async def test_endpoint_matches_non_owner_403(client: AsyncClient) -> None:
         "/v1/auth/register",
         json={"email": email, "password": "Senha123!", "role": "establishment"},
     )
-    login = await client.post(
-        "/v1/auth/login", json={"email": email, "password": "Senha123!"}
-    )
+    login = await client.post("/v1/auth/login", json={"email": email, "password": "Senha123!"})
     headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
-    resp = await client.get(
-        f"/v1/jobs/{ctx['job_id']}/matches", headers=headers
-    )
+    resp = await client.get(f"/v1/jobs/{ctx['job_id']}/matches", headers=headers)
     assert resp.status_code == 403
 
 

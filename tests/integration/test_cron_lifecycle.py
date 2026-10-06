@@ -36,9 +36,7 @@ async def _setup_contract(
     start = now + timedelta(hours=start_offset_hours)
     end = now + timedelta(hours=end_offset_hours)
     async with SessionLocal() as session:
-        est, _ = await make_establishment(
-            session, email=f"cron-est-{suffix}@test.com"
-        )
+        est, _ = await make_establishment(session, email=f"cron-est-{suffix}@test.com")
         fl, _ = await make_freelancer(session, email=f"cron-fl-{suffix}@test.com")
         cat = await make_skill_category(session)
         job = await make_job(
@@ -81,26 +79,20 @@ async def test_scheduled_to_in_progress() -> None:
     async with SessionLocal() as session:
         c = (
             await session.execute(
-                select(ServiceContract).where(
-                    ServiceContract.id == ctx["contract_id"]
-                )
+                select(ServiceContract).where(ServiceContract.id == ctx["contract_id"])
             )
         ).scalar_one()
         assert c.status == "in_progress"
 
 
 async def test_in_progress_to_completed() -> None:
-    ctx = await _setup_contract(
-        start_offset_hours=-5, end_offset_hours=-1, status="in_progress"
-    )
+    ctx = await _setup_contract(start_offset_hours=-5, end_offset_hours=-1, status="in_progress")
     res = await advance_contract_lifecycle({})
     assert res["completed"] >= 1
     async with SessionLocal() as session:
         c = (
             await session.execute(
-                select(ServiceContract).where(
-                    ServiceContract.id == ctx["contract_id"]
-                )
+                select(ServiceContract).where(ServiceContract.id == ctx["contract_id"])
             )
         ).scalar_one()
         assert c.status == "completed"
@@ -113,66 +105,50 @@ async def test_scheduled_skips_directly_to_completed_when_recovery() -> None:
     async with SessionLocal() as session:
         c = (
             await session.execute(
-                select(ServiceContract).where(
-                    ServiceContract.id == ctx["contract_id"]
-                )
+                select(ServiceContract).where(ServiceContract.id == ctx["contract_id"])
             )
         ).scalar_one()
         assert c.status == "completed"
 
 
 async def test_completed_increments_counter() -> None:
-    ctx = await _setup_contract(
-        start_offset_hours=-5, end_offset_hours=-1, status="in_progress"
-    )
+    ctx = await _setup_contract(start_offset_hours=-5, end_offset_hours=-1, status="in_progress")
     await advance_contract_lifecycle({})
     async with SessionLocal() as session:
         prof = (
             await session.execute(
-                select(FreelancerProfile).where(
-                    FreelancerProfile.user_id == ctx["fl_id"]
-                )
+                select(FreelancerProfile).where(FreelancerProfile.user_id == ctx["fl_id"])
             )
         ).scalar_one()
         assert prof.completed_contracts_count == 1
 
 
 async def test_completed_marks_job_completed() -> None:
-    ctx = await _setup_contract(
-        start_offset_hours=-5, end_offset_hours=-1, status="in_progress"
-    )
+    ctx = await _setup_contract(start_offset_hours=-5, end_offset_hours=-1, status="in_progress")
     await advance_contract_lifecycle({})
     async with SessionLocal() as session:
         job = (
-            await session.execute(
-                select(JobPosting).where(JobPosting.id == ctx["job_id"])
-            )
+            await session.execute(select(JobPosting).where(JobPosting.id == ctx["job_id"]))
         ).scalar_one()
         assert job.status == "completed"
 
 
 async def test_idempotent_run_twice() -> None:
     """2 execuções seguidas — segunda não duplica side-effects."""
-    ctx = await _setup_contract(
-        start_offset_hours=-5, end_offset_hours=-1, status="in_progress"
-    )
+    ctx = await _setup_contract(start_offset_hours=-5, end_offset_hours=-1, status="in_progress")
     await advance_contract_lifecycle({})
     await advance_contract_lifecycle({})
     # nosso contrato já foi completado no 1º run; 2º não o conta de novo
     async with SessionLocal() as session:
         prof = (
             await session.execute(
-                select(FreelancerProfile).where(
-                    FreelancerProfile.user_id == ctx["fl_id"]
-                )
+                select(FreelancerProfile).where(FreelancerProfile.user_id == ctx["fl_id"])
             )
         ).scalar_one()
         assert prof.completed_contracts_count == 1
         c = (
             await session.execute(
-                select(ServiceContract).where(
-                    ServiceContract.id == ctx["contract_id"]
-                )
+                select(ServiceContract).where(ServiceContract.id == ctx["contract_id"])
             )
         ).scalar_one()
         assert c.status == "completed"
@@ -180,16 +156,12 @@ async def test_idempotent_run_twice() -> None:
 
 async def test_cancelled_ignored() -> None:
     """Contrato cancelled NÃO é tocado pelo cron."""
-    ctx = await _setup_contract(
-        start_offset_hours=-5, end_offset_hours=-1, status="scheduled"
-    )
+    ctx = await _setup_contract(start_offset_hours=-5, end_offset_hours=-1, status="scheduled")
     # Marca como cancelled manualmente antes do cron
     async with SessionLocal() as session:
         c = (
             await session.execute(
-                select(ServiceContract).where(
-                    ServiceContract.id == ctx["contract_id"]
-                )
+                select(ServiceContract).where(ServiceContract.id == ctx["contract_id"])
             )
         ).scalar_one()
         c.status = "cancelled"
@@ -202,9 +174,7 @@ async def test_cancelled_ignored() -> None:
     async with SessionLocal() as session:
         c2 = (
             await session.execute(
-                select(ServiceContract).where(
-                    ServiceContract.id == ctx["contract_id"]
-                )
+                select(ServiceContract).where(ServiceContract.id == ctx["contract_id"])
             )
         ).scalar_one()
         assert c2.status == "cancelled"

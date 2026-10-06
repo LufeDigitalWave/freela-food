@@ -10,9 +10,7 @@ def _unique_email(prefix: str) -> str:
     return f"{prefix}-{uuid.uuid4().hex[:8]}@test.com"
 
 
-async def _register_and_login(
-    client: AsyncClient, email: str
-) -> dict[str, str]:
+async def _register_and_login(client: AsyncClient, email: str) -> dict[str, str]:
     await client.post(
         "/v1/auth/register",
         json={"email": email, "password": "Senha123!", "role": "freelancer"},
@@ -46,12 +44,8 @@ async def test_count_unread_with_notifications(client: AsyncClient) -> None:
     async with SessionLocal() as session:
         user = await UserRepository(session).get_by_email(email)
         assert user is not None
-        await NotificationService(session).emit(
-            user_id=user.id, type="test.a", payload={}
-        )
-        await NotificationService(session).emit(
-            user_id=user.id, type="test.b", payload={}
-        )
+        await NotificationService(session).emit(user_id=user.id, type="test.a", payload={})
+        await NotificationService(session).emit(user_id=user.id, type="test.b", payload={})
         await session.commit()
 
     resp = await client.get("/v1/me/notifications/count", headers=headers)
@@ -71,9 +65,7 @@ async def test_delete_notification_success(client: AsyncClient) -> None:
     async with SessionLocal() as session:
         user = await UserRepository(session).get_by_email(email)
         assert user is not None
-        n = await NotificationService(session).emit(
-            user_id=user.id, type="test.del", payload={}
-        )
+        n = await NotificationService(session).emit(user_id=user.id, type="test.del", payload={})
         await session.commit()
         nid = n.id
 
@@ -99,9 +91,7 @@ async def test_delete_notification_not_owner(client: AsyncClient) -> None:
     async with SessionLocal() as session:
         user_a = await UserRepository(session).get_by_email(email_a)
         assert user_a is not None
-        n = await NotificationService(session).emit(
-            user_id=user_a.id, type="test.x", payload={}
-        )
+        n = await NotificationService(session).emit(user_id=user_a.id, type="test.x", payload={})
         await session.commit()
         nid = n.id
 
@@ -133,9 +123,7 @@ async def test_count_reflects_unread_accurately(client: AsyncClient) -> None:
     async with SessionLocal() as session:
         user = await UserRepository(session).get_by_email(email)
         assert user is not None
-        n = await NotificationService(session).emit(
-            user_id=user.id, type="test.c", payload={}
-        )
+        n = await NotificationService(session).emit(user_id=user.id, type="test.c", payload={})
         await session.commit()
         nid = n.id
 

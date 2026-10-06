@@ -93,9 +93,7 @@ class JobRepository:
 
     async def soft_delete(self, job: JobPosting) -> None:
         await self._session.execute(
-            update(JobPosting)
-            .where(JobPosting.id == job.id)
-            .values(deleted_at=datetime.now(UTC))
+            update(JobPosting).where(JobPosting.id == job.id).values(deleted_at=datetime.now(UTC))
         )
         await self._session.flush()
 
@@ -106,9 +104,7 @@ class JobRepository:
             JobPosting.establishment_id == establishment_id,
             JobPosting.deleted_at.is_(None),
         )
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
             base.order_by(JobPosting.created_at.desc())
             .offset((page - 1) * page_size)
@@ -128,9 +124,9 @@ class JobRepository:
         page: int,
         page_size: int,
     ) -> tuple[list[tuple[JobPosting, float]], int]:
-        point_expr = func.ST_SetSRID(
-            func.ST_MakePoint(longitude, latitude), 4326
-        ).cast(JobPosting.location.type)
+        point_expr = func.ST_SetSRID(func.ST_MakePoint(longitude, latitude), 4326).cast(
+            JobPosting.location.type
+        )
 
         conditions = [
             JobPosting.deleted_at.is_(None),
@@ -148,17 +144,11 @@ class JobRepository:
         base = select(JobPosting, distance_col).where(*conditions)
 
         total = await self._session.scalar(
-            select(func.count()).select_from(
-                select(JobPosting.id).where(*conditions).subquery()
-            )
+            select(func.count()).select_from(select(JobPosting.id).where(*conditions).subquery())
         )
 
         result = await self._session.execute(
-            base.order_by(distance_col.asc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+            base.order_by(distance_col.asc()).offset((page - 1) * page_size).limit(page_size)
         )
-        rows: list[tuple[JobPosting, float]] = [
-            (row[0], float(row[1])) for row in result.all()
-        ]
+        rows: list[tuple[JobPosting, float]] = [(row[0], float(row[1])) for row in result.all()]
         return rows, int(total or 0)

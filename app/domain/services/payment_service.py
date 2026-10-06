@@ -52,18 +52,14 @@ class PaymentService:
         if contract.agreed_total_pay:
             amount = contract.agreed_total_pay
         elif contract.agreed_hourly_rate:
-            hours = Decimal(
-                str((contract.end_at - contract.start_at).total_seconds() / 3600)
-            )
+            hours = Decimal(str((contract.end_at - contract.start_at).total_seconds() / 3600))
             amount = (contract.agreed_hourly_rate * hours).quantize(Decimal("0.01"))
         else:
             amount = Decimal("0.00")
 
         # Buscar pix_key do freelancer
         fp = await self._session.scalar(
-            select(FreelancerProfile.pix_key).where(
-                FreelancerProfile.user_id == freelancer_id
-            )
+            select(FreelancerProfile.pix_key).where(FreelancerProfile.user_id == freelancer_id)
         )
 
         await self._payments.create(
@@ -79,9 +75,7 @@ class PaymentService:
             payload={"contract_id": str(contract_id), "amount": str(amount)},
         )
 
-    async def get_for_contract(
-        self, *, user_id: uuid.UUID, contract_id: uuid.UUID
-    ) -> PaymentRead:
+    async def get_for_contract(self, *, user_id: uuid.UUID, contract_id: uuid.UUID) -> PaymentRead:
         contract = await self._contracts.get_by_id(contract_id)
         if contract is None:
             raise NotFoundError("Contrato não encontrado")
@@ -137,9 +131,7 @@ class PaymentService:
         await self._session.refresh(payment)
         return PaymentRead.model_validate(payment)
 
-    async def dispute(
-        self, *, user_id: uuid.UUID, contract_id: uuid.UUID
-    ) -> PaymentRead:
+    async def dispute(self, *, user_id: uuid.UUID, contract_id: uuid.UUID) -> PaymentRead:
         contract = await self._contracts.get_by_id(contract_id)
         if contract is None:
             raise NotFoundError("Contrato não encontrado")

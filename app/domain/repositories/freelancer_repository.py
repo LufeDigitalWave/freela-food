@@ -35,9 +35,9 @@ class FreelancerRepository:
         page: int,
         page_size: int,
     ) -> tuple[list[tuple[FreelancerProfile, float]], int]:
-        point_expr = func.ST_SetSRID(
-            func.ST_MakePoint(longitude, latitude), 4326
-        ).cast(FreelancerProfile.location.type)
+        point_expr = func.ST_SetSRID(func.ST_MakePoint(longitude, latitude), 4326).cast(
+            FreelancerProfile.location.type
+        )
 
         conditions = [
             FreelancerProfile.deleted_at.is_(None),
@@ -53,9 +53,7 @@ class FreelancerRepository:
                 )
             )
 
-        distance_col = func.ST_Distance(
-            FreelancerProfile.location, point_expr
-        ).label("distance_m")
+        distance_col = func.ST_Distance(FreelancerProfile.location, point_expr).label("distance_m")
 
         base = select(FreelancerProfile, distance_col).where(*conditions)
 
@@ -90,9 +88,9 @@ class FreelancerRepository:
         page_size: int,
     ) -> tuple[list[FreelancerMatchData], int]:
         """Busca enriquecida pra matching: retorna perfis + dados de scoring."""
-        point_expr = func.ST_SetSRID(
-            func.ST_MakePoint(longitude, latitude), 4326
-        ).cast(FreelancerProfile.location.type)
+        point_expr = func.ST_SetSRID(func.ST_MakePoint(longitude, latitude), 4326).cast(
+            FreelancerProfile.location.type
+        )
 
         conditions = [
             FreelancerProfile.deleted_at.is_(None),
@@ -100,32 +98,36 @@ class FreelancerRepository:
             func.ST_DWithin(FreelancerProfile.location, point_expr, radius_m),
         ]
 
-        distance_col = func.ST_Distance(
-            FreelancerProfile.location, point_expr
-        ).label("distance_m")
+        distance_col = func.ST_Distance(FreelancerProfile.location, point_expr).label("distance_m")
 
         # Subquery: tem a skill?
         has_skill_subq = (
-            select(FreelancerSkill.freelancer_user_id)
-            .where(FreelancerSkill.skill_category_id == skill_category_id)
+            select(FreelancerSkill.freelancer_user_id).where(
+                FreelancerSkill.skill_category_id == skill_category_id
+            )
         ).correlate(FreelancerProfile)
 
         has_skill_col = FreelancerProfile.user_id.in_(has_skill_subq).label("has_skill")
 
         # Subquery: repeat hire count
         repeat_hire_subq = (
-            select(func.count())
-            .select_from(ServiceContract)
-            .where(
-                ServiceContract.freelancer_id == FreelancerProfile.user_id,
-                ServiceContract.establishment_id == establishment_id,
-                ServiceContract.status == "completed",
+            (
+                select(func.count())
+                .select_from(ServiceContract)
+                .where(
+                    ServiceContract.freelancer_id == FreelancerProfile.user_id,
+                    ServiceContract.establishment_id == establishment_id,
+                    ServiceContract.status == "completed",
+                )
             )
-        ).correlate(FreelancerProfile).scalar_subquery().label("repeat_hire_count")
+            .correlate(FreelancerProfile)
+            .scalar_subquery()
+            .label("repeat_hire_count")
+        )
 
-        base = select(
-            FreelancerProfile, distance_col, has_skill_col, repeat_hire_subq
-        ).where(*conditions)
+        base = select(FreelancerProfile, distance_col, has_skill_col, repeat_hire_subq).where(
+            *conditions
+        )
 
         total = await self._session.scalar(
             select(func.count()).select_from(
@@ -134,9 +136,7 @@ class FreelancerRepository:
         )
 
         # Busca sem ORDER BY — scoring é feito no service
-        result = await self._session.execute(
-            base.offset((page - 1) * page_size).limit(page_size)
-        )
+        result = await self._session.execute(base.offset((page - 1) * page_size).limit(page_size))
 
         items: list[FreelancerMatchData] = [
             FreelancerMatchData(

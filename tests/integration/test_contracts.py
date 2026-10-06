@@ -23,9 +23,7 @@ from tests.factories import (
 )
 
 
-async def _setup_contract_scenario(
-    *, days_until_start: int = 5, status: str = "scheduled"
-) -> dict:
+async def _setup_contract_scenario(*, days_until_start: int = 5, status: str = "scheduled") -> dict:
     async with SessionLocal() as session:
         est, _ = await make_establishment(session)
         fl, _ = await make_freelancer(session)
@@ -115,9 +113,7 @@ async def test_cancel_by_freelancer_far_from_start_no_no_show(
 
     async with SessionLocal() as session:
         row = await session.execute(
-            select(FreelancerProfile).where(
-                FreelancerProfile.user_id == ctx["fl_id"]
-            )
+            select(FreelancerProfile).where(FreelancerProfile.user_id == ctx["fl_id"])
         )
         profile = row.scalar_one()
         assert profile.no_show_count == 0
@@ -145,9 +141,7 @@ async def test_cancel_by_freelancer_under_24h_marks_no_show(
 
     async with SessionLocal() as session:
         row = await session.execute(
-            select(FreelancerProfile).where(
-                FreelancerProfile.user_id == ctx["fl_id"]
-            )
+            select(FreelancerProfile).where(FreelancerProfile.user_id == ctx["fl_id"])
         )
         profile = row.scalar_one()
         assert profile.no_show_count == 1
@@ -179,9 +173,7 @@ async def test_cancel_far_from_start_reopens_job(client: AsyncClient) -> None:
         headers=h,
     )
     async with SessionLocal() as session:
-        row = await session.execute(
-            select(JobPosting).where(JobPosting.id == ctx["job_id"])
-        )
+        row = await session.execute(select(JobPosting).where(JobPosting.id == ctx["job_id"]))
         job = row.scalar_one()
         assert job.status == "open"
 
@@ -200,9 +192,7 @@ async def test_cancel_close_to_start_cancels_job(client: AsyncClient) -> None:
             headers=h,
         )
     async with SessionLocal() as session:
-        row = await session.execute(
-            select(JobPosting).where(JobPosting.id == ctx["job_id"])
-        )
+        row = await session.execute(select(JobPosting).where(JobPosting.id == ctx["job_id"]))
         job = row.scalar_one()
         assert job.status == "cancelled"
 
@@ -211,9 +201,7 @@ async def test_cancel_close_to_start_cancels_job(client: AsyncClient) -> None:
 async def test_cancel_terminal_returns_409(client: AsyncClient) -> None:
     ctx = await _setup_contract_scenario(status="completed")
     h = await auth_header_for(client, ctx["fl_email"])
-    r = await client.post(
-        f"/v1/contracts/{ctx['contract_id']}/cancel", json={}, headers=h
-    )
+    r = await client.post(f"/v1/contracts/{ctx['contract_id']}/cancel", json={}, headers=h)
     assert r.status_code == 409
 
 
@@ -221,9 +209,7 @@ async def test_cancel_terminal_returns_409(client: AsyncClient) -> None:
 async def test_cancel_emits_notification_to_other_party(client: AsyncClient) -> None:
     ctx = await _setup_contract_scenario(days_until_start=5)
     h = await auth_header_for(client, ctx["fl_email"])
-    await client.post(
-        f"/v1/contracts/{ctx['contract_id']}/cancel", json={}, headers=h
-    )
+    await client.post(f"/v1/contracts/{ctx['contract_id']}/cancel", json={}, headers=h)
     # Establishment recebe notification
     h_est = await auth_header_for(client, ctx["est_email"])
     r = await client.get("/v1/me/notifications", headers=h_est)

@@ -50,9 +50,7 @@ class ContractService:
             page_size=page_size,
         )
 
-    async def get_by_id(
-        self, *, user_id: uuid.UUID, contract_id: uuid.UUID
-    ) -> ServiceContractRead:
+    async def get_by_id(self, *, user_id: uuid.UUID, contract_id: uuid.UUID) -> ServiceContractRead:
         contract = await self._repo.get_by_id(contract_id)
         if contract is None:
             raise NotFoundError("Contrato não encontrado")
@@ -98,9 +96,7 @@ class ContractService:
             )
 
         # Auto-reopen do job se faltar >2h pra start_at; senão job vira cancelled
-        new_job_status = (
-            "open" if (contract.start_at - now > timedelta(hours=2)) else "cancelled"
-        )
+        new_job_status = "open" if (contract.start_at - now > timedelta(hours=2)) else "cancelled"
         await self._session.execute(
             update(JobPosting)
             .where(
@@ -120,9 +116,7 @@ class ContractService:
         )
 
         # Notification pra outra parte
-        other_party_id = (
-            contract.establishment_id if is_freelancer else contract.freelancer_id
-        )
+        other_party_id = contract.establishment_id if is_freelancer else contract.freelancer_id
         await self._notifications.emit(
             user_id=other_party_id,
             type="contract.cancelled_by_other_party",

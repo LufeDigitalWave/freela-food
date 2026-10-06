@@ -27,9 +27,7 @@ async def _setup_estab_with_job(
         "/v1/auth/register",
         json={"email": email, "password": pwd, "role": "establishment"},
     )
-    login = await client.post(
-        "/v1/auth/login", json={"email": email, "password": pwd}
-    )
+    login = await client.post("/v1/auth/login", json={"email": email, "password": pwd})
     token: str = login.json()["access_token"]
 
     await client.post(
@@ -71,9 +69,7 @@ async def _freelancer_token(client: AsyncClient) -> str:
         "/v1/auth/register",
         json={"email": email, "password": pwd, "role": "freelancer"},
     )
-    login = await client.post(
-        "/v1/auth/login", json={"email": email, "password": pwd}
-    )
+    login = await client.post("/v1/auth/login", json={"email": email, "password": pwd})
     return login.json()["access_token"]  # type: ignore[no-any-return]
 
 
@@ -181,9 +177,7 @@ async def test_search_excludes_cancelled_jobs_by_default(client: AsyncClient) ->
         "/v1/auth/register",
         json={"email": email, "password": pwd, "role": "establishment"},
     )
-    login = await client.post(
-        "/v1/auth/login", json={"email": email, "password": pwd}
-    )
+    login = await client.post("/v1/auth/login", json={"email": email, "password": pwd})
     token = login.json()["access_token"]
 
     await client.post(

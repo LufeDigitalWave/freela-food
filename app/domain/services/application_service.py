@@ -94,9 +94,7 @@ class ApplicationService:
         await self._session.commit()
         return ApplicationRead.model_validate(app_)
 
-    async def get_by_id(
-        self, *, user_id: uuid.UUID, app_id: uuid.UUID
-    ) -> ApplicationRead:
+    async def get_by_id(self, *, user_id: uuid.UUID, app_id: uuid.UUID) -> ApplicationRead:
         app_ = await self._repo.get_by_id(app_id)
         if app_ is None:
             raise NotFoundError("Candidatura não encontrada")
@@ -135,9 +133,7 @@ class ApplicationService:
             page_size=page_size,
         )
 
-    async def reject(
-        self, *, user_id: uuid.UUID, app_id: uuid.UUID
-    ) -> ApplicationRead:
+    async def reject(self, *, user_id: uuid.UUID, app_id: uuid.UUID) -> ApplicationRead:
         app_ = await self._repo.get_by_id(app_id)
         if app_ is None:
             raise NotFoundError("Candidatura não encontrada")
@@ -166,9 +162,7 @@ class ApplicationService:
         await self._session.commit()
         return ApplicationRead.model_validate(app_)
 
-    async def withdraw(
-        self, *, user_id: uuid.UUID, app_id: uuid.UUID
-    ) -> ApplicationRead:
+    async def withdraw(self, *, user_id: uuid.UUID, app_id: uuid.UUID) -> ApplicationRead:
         app_ = await self._repo.get_by_id(app_id)
         if app_ is None:
             raise NotFoundError("Candidatura não encontrada")
@@ -188,9 +182,7 @@ class ApplicationService:
         await self._session.commit()
         return ApplicationRead.model_validate(app_)
 
-    async def accept(
-        self, *, user_id: uuid.UUID, app_id: uuid.UUID
-    ) -> ApplicationRead:
+    async def accept(self, *, user_id: uuid.UUID, app_id: uuid.UUID) -> ApplicationRead:
         contracts_repo = ContractRepository(self._session)
 
         app_ = await self._repo.get_by_id(app_id)
@@ -219,18 +211,14 @@ class ApplicationService:
         now = datetime.now(UTC)
 
         # 1) Marca esta application como accepted
-        app_ = await self._repo.update_status(
-            app_, new_status="accepted", decided_at=now
-        )
+        app_ = await self._repo.update_status(app_, new_status="accepted", decided_at=now)
 
         # 2) Cascade-reject das demais pending da mesma vaga
         pending_others = await self._repo.list_pending_for_job_except(
             job_posting_id=job.id, except_id=app_.id
         )
         for other in pending_others:
-            await self._repo.update_status(
-                other, new_status="rejected", decided_at=now
-            )
+            await self._repo.update_status(other, new_status="rejected", decided_at=now)
 
         # 3) Job → filled
         await self._session.execute(

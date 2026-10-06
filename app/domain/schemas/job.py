@@ -64,11 +64,7 @@ class JobPostingUpdate(BaseModel):
 
     @model_validator(mode="after")
     def _validate(self) -> "JobPostingUpdate":
-        if (
-            self.start_at is not None
-            and self.end_at is not None
-            and self.end_at <= self.start_at
-        ):
+        if self.start_at is not None and self.end_at is not None and self.end_at <= self.start_at:
             raise ValueError("end_at deve ser depois de start_at")
         if (self.latitude is None) ^ (self.longitude is None):
             raise ValueError("latitude e longitude devem ser informados juntos")

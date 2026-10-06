@@ -111,9 +111,7 @@ async def require_admin(
     from app.domain.models.user import User
 
     async with SessionLocal() as session:
-        result = await session.execute(
-            select(User.role).where(User.id == user_id)
-        )
+        result = await session.execute(select(User.role).where(User.id == user_id))
         role = result.scalar_one_or_none()
     if role != "admin":
         raise HTTPException(

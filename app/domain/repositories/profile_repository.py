@@ -192,9 +192,7 @@ class ProfileRepository:
         await self._session.refresh(profile)
         return profile
 
-    async def decrypt_establishment_cnpj(
-        self, profile: EstablishmentProfile
-    ) -> str | None:
+    async def decrypt_establishment_cnpj(self, profile: EstablishmentProfile) -> str | None:
         if profile.cnpj_encrypted is None:
             return None
         return await self._decrypt(profile.cnpj_encrypted)
@@ -202,13 +200,9 @@ class ProfileRepository:
     # ── pgcrypto helpers ──────────────────────────────────────────────────────
 
     async def _encrypt(self, plain: str) -> bytes:
-        result = await self._session.execute(
-            select(func.pgp_sym_encrypt(plain, self._enc_key))
-        )
+        result = await self._session.execute(select(func.pgp_sym_encrypt(plain, self._enc_key)))
         return result.scalar_one()  # type: ignore[no-any-return]
 
     async def _decrypt(self, encrypted: bytes) -> str:
-        result = await self._session.execute(
-            select(func.pgp_sym_decrypt(encrypted, self._enc_key))
-        )
+        result = await self._session.execute(select(func.pgp_sym_decrypt(encrypted, self._enc_key)))
         return result.scalar_one()  # type: ignore[no-any-return]

@@ -11,9 +11,7 @@ from app.domain.models.base import Base, TimestampMixin
 
 class FreelancerSkill(Base, TimestampMixin):
     __tablename__ = "freelancer_skills"
-    __table_args__ = (
-        PrimaryKeyConstraint("freelancer_user_id", "skill_category_id"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("freelancer_user_id", "skill_category_id"),)
 
     freelancer_user_id: Mapped[uuid.UUID] = mapped_column(
         PG_UUID(as_uuid=True),

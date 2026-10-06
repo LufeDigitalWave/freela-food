@@ -88,9 +88,9 @@ async def test_create_payment_idempotent() -> None:
         await session.commit()
     async with SessionLocal() as session:
         count = await session.scalar(
-            select(func.count()).select_from(Payment).where(
-                Payment.contract_id == ctx["contract_id"]
-            )
+            select(func.count())
+            .select_from(Payment)
+            .where(Payment.contract_id == ctx["contract_id"])
         )
     assert count == 1
 
@@ -112,9 +112,7 @@ async def test_payment_notification_pending() -> None:
 async def test_get_payment_endpoint(client: AsyncClient) -> None:
     ctx = await _setup_completed_with_payment()
     headers = await auth_header_for(client, ctx["fl_email"])
-    resp = await client.get(
-        f"/v1/contracts/{ctx['contract_id']}/payment", headers=headers
-    )
+    resp = await client.get(f"/v1/contracts/{ctx['contract_id']}/payment", headers=headers)
     assert resp.status_code == 200
     assert resp.json()["status"] == "pending"
     assert resp.json()["pix_key"] == "fl@pix.com"
@@ -225,7 +223,5 @@ async def test_payment_not_found_before_completion(client: AsyncClient) -> None:
         await session.commit()
 
     headers = await auth_header_for(client, f"fl-{suffix}@test.com")
-    resp = await client.get(
-        f"/v1/contracts/{contract.id}/payment", headers=headers
-    )
+    resp = await client.get(f"/v1/contracts/{contract.id}/payment", headers=headers)
     assert resp.status_code == 404

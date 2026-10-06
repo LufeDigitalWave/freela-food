@@ -36,9 +36,7 @@ class ReportRepository:
         return report
 
     async def get_by_id(self, report_id: uuid.UUID) -> Report | None:
-        result = await self._session.execute(
-            select(Report).where(Report.id == report_id)
-        )
+        result = await self._session.execute(select(Report).where(Report.id == report_id))
         return result.scalar_one_or_none()
 
     async def has_pending_duplicate(
@@ -68,13 +66,9 @@ class ReportRepository:
         page_size: int,
     ) -> tuple[list[Report], int]:
         base = select(Report).where(Report.reporter_id == reporter_id)
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
-            base.order_by(Report.created_at.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+            base.order_by(Report.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         )
         return list(result.scalars().all()), int(total or 0)
 
@@ -95,12 +89,8 @@ class ReportRepository:
         if reason:
             base = base.where(Report.reason == reason)
 
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
-            base.order_by(Report.created_at.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+            base.order_by(Report.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         )
         return list(result.scalars().all()), int(total or 0)

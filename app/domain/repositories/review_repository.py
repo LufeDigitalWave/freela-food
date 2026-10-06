@@ -69,13 +69,9 @@ class ReviewRepository:
             Review.visible_at <= datetime.now(UTC),
             Review.hidden_at.is_(None),
         )
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
-            base.order_by(Review.created_at.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+            base.order_by(Review.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         )
         return list(result.scalars().all()), int(total or 0)
 
@@ -84,13 +80,9 @@ class ReviewRepository:
     ) -> tuple[list[Review], int]:
         """Todas reviews recebidas (visíveis ou não) — pra /me/reviews."""
         base = select(Review).where(Review.reviewee_id == reviewee_id)
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
-            base.order_by(Review.created_at.desc())
-            .offset((page - 1) * page_size)
-            .limit(page_size)
+            base.order_by(Review.created_at.desc()).offset((page - 1) * page_size).limit(page_size)
         )
         return list(result.scalars().all()), int(total or 0)
 
@@ -126,9 +118,7 @@ class ReviewRepository:
         result = cast(
             CursorResult[Any],
             await self._session.execute(
-                update(Review)
-                .where(Review.id.in_(review_ids))
-                .values(visible_at=datetime.now(UTC))
+                update(Review).where(Review.id.in_(review_ids)).values(visible_at=datetime.now(UTC))
             ),
         )
         await self._session.flush()

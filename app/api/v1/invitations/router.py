@@ -47,9 +47,7 @@ async def get_invitation(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> InvitationRead:
-    return await InvitationService(session).get_by_id(
-        user_id=user_id, invitation_id=invitation_id
-    )
+    return await InvitationService(session).get_by_id(user_id=user_id, invitation_id=invitation_id)
 
 
 @router.post(
@@ -63,9 +61,7 @@ async def create_invitation(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> InvitationRead:
-    return await InvitationService(session).create(
-        establishment_id=user_id, payload=payload
-    )
+    return await InvitationService(session).create(establishment_id=user_id, payload=payload)
 
 
 @router.post(
@@ -78,9 +74,7 @@ async def decline_invitation(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> InvitationRead:
-    return await InvitationService(session).decline(
-        user_id=user_id, invitation_id=invitation_id
-    )
+    return await InvitationService(session).decline(user_id=user_id, invitation_id=invitation_id)
 
 
 @router.post(
@@ -93,9 +87,7 @@ async def withdraw_invitation(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> InvitationRead:
-    return await InvitationService(session).withdraw(
-        user_id=user_id, invitation_id=invitation_id
-    )
+    return await InvitationService(session).withdraw(user_id=user_id, invitation_id=invitation_id)
 
 
 @router.post(
@@ -108,6 +100,4 @@ async def accept_invitation(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> InvitationRead:
-    return await InvitationService(session).accept(
-        user_id=user_id, invitation_id=invitation_id
-    )
+    return await InvitationService(session).accept(user_id=user_id, invitation_id=invitation_id)

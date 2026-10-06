@@ -53,9 +53,7 @@ async def test_accept_creates_contract() -> None:
     async with SessionLocal() as session:
         contract = (
             await session.execute(
-                select(ServiceContract).where(
-                    ServiceContract.invitation_id == ctx["inv_id"]
-                )
+                select(ServiceContract).where(ServiceContract.invitation_id == ctx["inv_id"])
             )
         ).scalar_one()
         assert contract.application_id is None
@@ -67,15 +65,11 @@ async def test_accept_creates_contract() -> None:
 async def test_accept_copies_terms() -> None:
     ctx = await _setup()
     async with SessionLocal() as session:
-        await InvitationService(session).accept(
-            user_id=ctx["fl_id"], invitation_id=ctx["inv_id"]
-        )
+        await InvitationService(session).accept(user_id=ctx["fl_id"], invitation_id=ctx["inv_id"])
     async with SessionLocal() as session:
         contract = (
             await session.execute(
-                select(ServiceContract).where(
-                    ServiceContract.invitation_id == ctx["inv_id"]
-                )
+                select(ServiceContract).where(ServiceContract.invitation_id == ctx["inv_id"])
             )
         ).scalar_one()
         assert contract.agreed_hourly_rate is not None
@@ -85,9 +79,7 @@ async def test_accept_cascade_declines_overlapping() -> None:
     ctx = await _setup()
     now = datetime.now(UTC)
     async with SessionLocal() as session:
-        est2, _ = await make_establishment(
-            session, email=f"est2-{uuid.uuid4().hex[:8]}@test.com"
-        )
+        est2, _ = await make_establishment(session, email=f"est2-{uuid.uuid4().hex[:8]}@test.com")
         cat = await make_skill_category(session)
         other = await make_invitation(
             session,
@@ -103,16 +95,12 @@ async def test_accept_cascade_declines_overlapping() -> None:
         other_id = other.id
 
     async with SessionLocal() as session:
-        await InvitationService(session).accept(
-            user_id=ctx["fl_id"], invitation_id=ctx["inv_id"]
-        )
+        await InvitationService(session).accept(user_id=ctx["fl_id"], invitation_id=ctx["inv_id"])
     async with SessionLocal() as session:
         from app.domain.models.invitation import Invitation
 
         refreshed = (
-            await session.execute(
-                select(Invitation).where(Invitation.id == other_id)
-            )
+            await session.execute(select(Invitation).where(Invitation.id == other_id))
         ).scalar_one()
         assert refreshed.status == "declined"
 
@@ -121,9 +109,7 @@ async def test_accept_does_not_touch_nonoverlapping() -> None:
     ctx = await _setup()
     now = datetime.now(UTC)
     async with SessionLocal() as session:
-        est2, _ = await make_establishment(
-            session, email=f"est2-{uuid.uuid4().hex[:8]}@test.com"
-        )
+        est2, _ = await make_establishment(session, email=f"est2-{uuid.uuid4().hex[:8]}@test.com")
         cat = await make_skill_category(session)
         other = await make_invitation(
             session,
@@ -139,16 +125,12 @@ async def test_accept_does_not_touch_nonoverlapping() -> None:
         other_id = other.id
 
     async with SessionLocal() as session:
-        await InvitationService(session).accept(
-            user_id=ctx["fl_id"], invitation_id=ctx["inv_id"]
-        )
+        await InvitationService(session).accept(user_id=ctx["fl_id"], invitation_id=ctx["inv_id"])
     async with SessionLocal() as session:
         from app.domain.models.invitation import Invitation
 
         refreshed = (
-            await session.execute(
-                select(Invitation).where(Invitation.id == other_id)
-            )
+            await session.execute(select(Invitation).where(Invitation.id == other_id))
         ).scalar_one()
         assert refreshed.status == "pending"
 
@@ -159,14 +141,10 @@ async def test_accept_blocked_by_overlap() -> None:
 
     ctx = await _setup()
     async with SessionLocal() as session:
-        await InvitationService(session).accept(
-            user_id=ctx["fl_id"], invitation_id=ctx["inv_id"]
-        )
+        await InvitationService(session).accept(user_id=ctx["fl_id"], invitation_id=ctx["inv_id"])
     now = datetime.now(UTC)
     async with SessionLocal() as session:
-        est2, _ = await make_establishment(
-            session, email=f"est2-{uuid.uuid4().hex[:8]}@test.com"
-        )
+        est2, _ = await make_establishment(session, email=f"est2-{uuid.uuid4().hex[:8]}@test.com")
         cat = await make_skill_category(session)
         inv2 = await make_invitation(
             session,
@@ -183,9 +161,7 @@ async def test_accept_blocked_by_overlap() -> None:
 
     async with SessionLocal() as session:
         try:
-            await InvitationService(session).accept(
-                user_id=ctx["fl_id"], invitation_id=inv2_id
-            )
+            await InvitationService(session).accept(user_id=ctx["fl_id"], invitation_id=inv2_id)
             raise AssertionError("esperava FreelancerOverlap")
         except FreelancerOverlap:
             pass

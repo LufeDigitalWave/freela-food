@@ -31,11 +31,7 @@ def compute_score(
     profile = data.profile
 
     # Proximidade: mais perto = melhor
-    proximity = (
-        max(0.0, 1.0 - data.distance_m / max_distance_m)
-        if max_distance_m > 0
-        else 1.0
-    )
+    proximity = max(0.0, 1.0 - data.distance_m / max_distance_m) if max_distance_m > 0 else 1.0
 
     # Skill match: 1.0 se tem, 0.0 se não
     skill = 1.0 if data.has_skill else 0.0

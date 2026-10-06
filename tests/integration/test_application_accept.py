@@ -45,9 +45,7 @@ async def _three_freelancers_apply() -> dict:
         )
         apps = []
         for fl in fls:
-            a = await make_application(
-                session, job_posting_id=job.id, freelancer_id=fl.id
-            )
+            a = await make_application(session, job_posting_id=job.id, freelancer_id=fl.id)
             apps.append(a)
         await session.commit()
         return {
@@ -69,18 +67,14 @@ async def test_accept_happy_path_creates_contract(client: AsyncClient) -> None:
     async with SessionLocal() as session:
         # Job → filled
         job = (
-            await session.execute(
-                select(JobPosting).where(JobPosting.id == ctx["job_id"])
-            )
+            await session.execute(select(JobPosting).where(JobPosting.id == ctx["job_id"]))
         ).scalar_one()
         assert job.status == "filled"
         # Outras 2 applications → rejected
         rows = (
             (
                 await session.execute(
-                    select(Application).where(
-                        Application.job_posting_id == ctx["job_id"]
-                    )
+                    select(Application).where(Application.job_posting_id == ctx["job_id"])
                 )
             )
             .scalars()
@@ -91,9 +85,7 @@ async def test_accept_happy_path_creates_contract(client: AsyncClient) -> None:
         # ServiceContract criado
         contract = (
             await session.execute(
-                select(ServiceContract).where(
-                    ServiceContract.application_id == ctx["app_ids"][0]
-                )
+                select(ServiceContract).where(ServiceContract.application_id == ctx["app_ids"][0])
             )
         ).scalar_one()
         assert contract.status == "scheduled"
@@ -109,9 +101,7 @@ async def test_accept_with_single_pending_no_cascade(client: AsyncClient) -> Non
         job = await make_job(
             session, establishment_id=est.id, skill_category_id=cat.id, status="open"
         )
-        a = await make_application(
-            session, job_posting_id=job.id, freelancer_id=fl.id
-        )
+        a = await make_application(session, job_posting_id=job.id, freelancer_id=fl.id)
         await session.commit()
         aid = a.id
         est_email = est.email
@@ -155,9 +145,7 @@ async def test_accept_by_non_owner_returns_403(client: AsyncClient) -> None:
         job = await make_job(
             session, establishment_id=est.id, skill_category_id=cat.id, status="open"
         )
-        a = await make_application(
-            session, job_posting_id=job.id, freelancer_id=fl.id
-        )
+        a = await make_application(session, job_posting_id=job.id, freelancer_id=fl.id)
         await session.commit()
         aid = a.id
         outro_email = outro.email
@@ -211,9 +199,7 @@ async def test_accept_blocked_by_overlap_scheduled(client: AsyncClient) -> None:
             start_at=start,
             end_at=end,
         )
-        app_b = await make_application(
-            session, job_posting_id=job_b.id, freelancer_id=fl.id
-        )
+        app_b = await make_application(session, job_posting_id=job_b.id, freelancer_id=fl.id)
         await session.commit()
         b_id = app_b.id
         est_b_email = est_b.email
@@ -266,9 +252,7 @@ async def test_accept_blocked_by_overlap_in_progress(client: AsyncClient) -> Non
             start_at=start_b,
             end_at=end_b,
         )
-        app_b = await make_application(
-            session, job_posting_id=job_b.id, freelancer_id=fl.id
-        )
+        app_b = await make_application(session, job_posting_id=job_b.id, freelancer_id=fl.id)
         await session.commit()
         bid = app_b.id
         est_b_email = est_b.email
@@ -319,9 +303,7 @@ async def test_accept_allows_overlap_with_cancelled_contract(
             start_at=start,
             end_at=end,
         )
-        app_b = await make_application(
-            session, job_posting_id=job_b.id, freelancer_id=fl.id
-        )
+        app_b = await make_application(session, job_posting_id=job_b.id, freelancer_id=fl.id)
         await session.commit()
         bid = app_b.id
         est_b_email = est_b.email
@@ -372,9 +354,7 @@ async def test_accept_allows_overlap_with_completed_contract(
             start_at=start,
             end_at=end,
         )
-        app_b = await make_application(
-            session, job_posting_id=job_b.id, freelancer_id=fl.id
-        )
+        app_b = await make_application(session, job_posting_id=job_b.id, freelancer_id=fl.id)
         await session.commit()
         bid = app_b.id
         est_b_email = est_b.email
@@ -426,9 +406,7 @@ async def test_accept_partial_overlap_borders(client: AsyncClient) -> None:
             start_at=start_b,
             end_at=end_b,
         )
-        app_b = await make_application(
-            session, job_posting_id=job_b.id, freelancer_id=fl.id
-        )
+        app_b = await make_application(session, job_posting_id=job_b.id, freelancer_id=fl.id)
         await session.commit()
         bid = app_b.id
         est_b_email = est_b.email
@@ -478,9 +456,7 @@ async def test_accept_no_overlap_adjacent(client: AsyncClient) -> None:
             start_at=end_a,
             end_at=end_a + timedelta(hours=3),
         )
-        app_b = await make_application(
-            session, job_posting_id=job_b.id, freelancer_id=fl.id
-        )
+        app_b = await make_application(session, job_posting_id=job_b.id, freelancer_id=fl.id)
         await session.commit()
         bid = app_b.id
         est_b_email = est_b.email
@@ -526,9 +502,7 @@ async def test_accept_copies_pay_from_job(client: AsyncClient) -> None:
             hourly_rate=None,
             total_pay=Decimal("250.00"),
         )
-        a = await make_application(
-            session, job_posting_id=job.id, freelancer_id=fl.id
-        )
+        a = await make_application(session, job_posting_id=job.id, freelancer_id=fl.id)
         await session.commit()
         aid = a.id
         est_email = est.email
@@ -540,9 +514,7 @@ async def test_accept_copies_pay_from_job(client: AsyncClient) -> None:
     async with SessionLocal() as session:
         c = (
             await session.execute(
-                select(ServiceContract).where(
-                    ServiceContract.application_id == aid
-                )
+                select(ServiceContract).where(ServiceContract.application_id == aid)
             )
         ).scalar_one()
         assert c.agreed_total_pay == Decimal("250.00")

@@ -20,9 +20,7 @@ from tests.factories import (
 )
 
 
-async def _setup_completed_contract(
-    *, via_invitation: bool = False
-) -> dict:
+async def _setup_completed_contract(*, via_invitation: bool = False) -> dict:
     """Cria freelancer + establishment + contrato completed."""
     suffix = uuid.uuid4().hex[:8]
     async with SessionLocal() as session:
@@ -132,9 +130,7 @@ async def test_review_contract_not_completed() -> None:
         est, _ = await make_establishment(session, email=f"est-{suffix}@test.com")
         fl, _ = await make_freelancer(session, email=f"fl-{suffix}@test.com")
         cat = await make_skill_category(session)
-        job = await make_job(
-            session, establishment_id=est.id, skill_category_id=cat.id
-        )
+        job = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
         app_ = await make_application(
             session, job_posting_id=job.id, freelancer_id=fl.id, status="accepted"
         )
@@ -164,9 +160,7 @@ async def test_review_window_closed() -> None:
         est, _ = await make_establishment(session, email=f"est-{suffix}@test.com")
         fl, _ = await make_freelancer(session, email=f"fl-{suffix}@test.com")
         cat = await make_skill_category(session)
-        job = await make_job(
-            session, establishment_id=est.id, skill_category_id=cat.id
-        )
+        job = await make_job(session, establishment_id=est.id, skill_category_id=cat.id)
         app_ = await make_application(
             session, job_posting_id=job.id, freelancer_id=fl.id, status="accepted"
         )

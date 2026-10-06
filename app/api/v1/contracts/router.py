@@ -53,9 +53,7 @@ async def get_contract(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> ServiceContractRead:
-    return await ContractService(session).get_by_id(
-        user_id=user_id, contract_id=contract_id
-    )
+    return await ContractService(session).get_by_id(user_id=user_id, contract_id=contract_id)
 
 
 @router.post(
@@ -87,9 +85,7 @@ async def get_payment(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> PaymentRead:
-    return await PaymentService(session).get_for_contract(
-        user_id=user_id, contract_id=contract_id
-    )
+    return await PaymentService(session).get_for_contract(user_id=user_id, contract_id=contract_id)
 
 
 @router.post(
@@ -118,9 +114,7 @@ async def dispute_payment(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> PaymentRead:
-    return await PaymentService(session).dispute(
-        user_id=user_id, contract_id=contract_id
-    )
+    return await PaymentService(session).dispute(user_id=user_id, contract_id=contract_id)
 
 
 @router.get(

@@ -65,16 +65,12 @@ class JobService:
         self._users = UserRepository(session)
         self._profiles = ProfileRepository(session)
 
-    async def create(
-        self, user_id: uuid.UUID, payload: JobPostingCreate
-    ) -> JobPostingRead:
+    async def create(self, user_id: uuid.UUID, payload: JobPostingCreate) -> JobPostingRead:
         user = await self._users.get_by_id(user_id)
         if user is None:
             raise NotFoundError("Usuário não encontrado")
         if user.role != "establishment":
-            raise PermissionDenied(
-                "Apenas estabelecimentos podem postar vagas"
-            )
+            raise PermissionDenied("Apenas estabelecimentos podem postar vagas")
 
         # Resolver location: payload OU perfil
         lat = payload.latitude

@@ -17,9 +17,7 @@ from app.utils.br_validators import (
 
 # Telefone E.164: +<código país><número>, total 8-15 dígitos
 Phone = Annotated[str, StringConstraints(pattern=r"^\+[1-9]\d{7,14}$")]
-StateUF = Annotated[
-    str, StringConstraints(pattern=r"^[A-Z]{2}$", min_length=2, max_length=2)
-]
+StateUF = Annotated[str, StringConstraints(pattern=r"^[A-Z]{2}$", min_length=2, max_length=2)]
 
 
 # ── Freelancer ────────────────────────────────────────────────────────────────

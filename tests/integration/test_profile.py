@@ -18,9 +18,7 @@ def _unique_email() -> str:
     return f"profile-test-{uuid.uuid4()}@example.com"
 
 
-async def _register_and_login(
-    client: AsyncClient, email: str, role: str
-) -> tuple[str, str]:
+async def _register_and_login(client: AsyncClient, email: str, role: str) -> tuple[str, str]:
     """Cria user e retorna (user_id, access_token)."""
     pwd = "supersecret123"
     reg = await client.post(

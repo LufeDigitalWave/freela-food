@@ -29,8 +29,7 @@ class ServiceContract(Base, UUIDPKMixin, TimestampMixin):
             name="service_contracts_status_check",
         ),
         CheckConstraint(
-            "cancelled_by IS NULL OR cancelled_by IN "
-            "('freelancer', 'establishment', 'system')",
+            "cancelled_by IS NULL OR cancelled_by IN ('freelancer', 'establishment', 'system')",
             name="service_contracts_cancelled_by_check",
         ),
         CheckConstraint("end_at > start_at", name="service_contracts_dates_check"),
@@ -78,19 +77,13 @@ class ServiceContract(Base, UUIDPKMixin, TimestampMixin):
     )
     start_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     end_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    agreed_hourly_rate: Mapped[Decimal | None] = mapped_column(
-        Numeric(10, 2), nullable=True
-    )
-    agreed_total_pay: Mapped[Decimal | None] = mapped_column(
-        Numeric(10, 2), nullable=True
-    )
+    agreed_hourly_rate: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
+    agreed_total_pay: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=True)
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="scheduled", server_default="scheduled"
     )
     cancelled_by: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    cancelled_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     cancel_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     no_show: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"

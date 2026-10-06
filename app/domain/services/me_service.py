@@ -33,9 +33,7 @@ class MeService:
             raise NotFoundError("Usuário não encontrado")
 
         freelancer = (
-            await self._profile_repo.get_freelancer(user_id)
-            if user.role == "freelancer"
-            else None
+            await self._profile_repo.get_freelancer(user_id) if user.role == "freelancer" else None
         )
         establishment = (
             await self._profile_repo.get_establishment(user_id)
@@ -52,9 +50,7 @@ class MeService:
                 _freelancer_to_read(freelancer) if freelancer is not None else None
             ),
             establishment_profile=(
-                _establishment_to_read(establishment)
-                if establishment is not None
-                else None
+                _establishment_to_read(establishment) if establishment is not None else None
             ),
         )
 

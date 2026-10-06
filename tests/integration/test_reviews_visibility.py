@@ -79,9 +79,7 @@ async def test_second_review_makes_both_visible() -> None:
 
     # Verificar que a primeira review também ficou visível
     async with SessionLocal() as session:
-        result = await session.execute(
-            select(Review).where(Review.id == r1.id)
-        )
+        result = await session.execute(select(Review).where(Review.id == r1.id))
         r1_updated = result.scalar_one()
     assert r1_updated.visible_at is not None
 

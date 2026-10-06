@@ -116,9 +116,7 @@ class InvitationService:
             page_size=page_size,
         )
 
-    async def get_by_id(
-        self, *, user_id: uuid.UUID, invitation_id: uuid.UUID
-    ) -> InvitationRead:
+    async def get_by_id(self, *, user_id: uuid.UUID, invitation_id: uuid.UUID) -> InvitationRead:
         inv = await self._repo.get_by_id(invitation_id)
         if inv is None:
             raise NotFoundError("Convite não encontrado")
@@ -126,9 +124,7 @@ class InvitationService:
             raise PermissionDenied()
         return InvitationRead.model_validate(inv)
 
-    async def decline(
-        self, *, user_id: uuid.UUID, invitation_id: uuid.UUID
-    ) -> InvitationRead:
+    async def decline(self, *, user_id: uuid.UUID, invitation_id: uuid.UUID) -> InvitationRead:
         inv = await self._repo.get_by_id(invitation_id)
         if inv is None:
             raise NotFoundError("Convite não encontrado")
@@ -138,9 +134,7 @@ class InvitationService:
             raise InvitationNotPending()
 
         now = datetime.now(UTC)
-        inv = await self._repo.update_status(
-            inv, new_status="declined", decided_at=now
-        )
+        inv = await self._repo.update_status(inv, new_status="declined", decided_at=now)
         await write_audit_log(
             self._session,
             actor_id=user_id,
@@ -157,9 +151,7 @@ class InvitationService:
         await self._session.commit()
         return InvitationRead.model_validate(inv)
 
-    async def withdraw(
-        self, *, user_id: uuid.UUID, invitation_id: uuid.UUID
-    ) -> InvitationRead:
+    async def withdraw(self, *, user_id: uuid.UUID, invitation_id: uuid.UUID) -> InvitationRead:
         inv = await self._repo.get_by_id(invitation_id)
         if inv is None:
             raise NotFoundError("Convite não encontrado")
@@ -169,9 +161,7 @@ class InvitationService:
             raise InvitationNotPending()
 
         now = datetime.now(UTC)
-        inv = await self._repo.update_status(
-            inv, new_status="withdrawn", decided_at=now
-        )
+        inv = await self._repo.update_status(inv, new_status="withdrawn", decided_at=now)
         await write_audit_log(
             self._session,
             actor_id=user_id,
@@ -188,9 +178,7 @@ class InvitationService:
         await self._session.commit()
         return InvitationRead.model_validate(inv)
 
-    async def accept(
-        self, *, user_id: uuid.UUID, invitation_id: uuid.UUID
-    ) -> InvitationRead:
+    async def accept(self, *, user_id: uuid.UUID, invitation_id: uuid.UUID) -> InvitationRead:
         contracts_repo = ContractRepository(self._session)
 
         inv = await self._repo.get_by_id(invitation_id)
@@ -213,9 +201,7 @@ class InvitationService:
             raise FreelancerOverlap()
 
         # 1) Convite aceito
-        inv = await self._repo.update_status(
-            inv, new_status="accepted", decided_at=now
-        )
+        inv = await self._repo.update_status(inv, new_status="accepted", decided_at=now)
 
         # 2) Cria contrato (origem invitation, sem job)
         contract = await contracts_repo.create(
@@ -236,9 +222,7 @@ class InvitationService:
             except_id=inv.id,
         )
         for other in overlapping:
-            await self._repo.update_status(
-                other, new_status="declined", decided_at=now
-            )
+            await self._repo.update_status(other, new_status="declined", decided_at=now)
             await self._notifications.emit(
                 user_id=other.establishment_id,
                 type="invitation.declined",

@@ -20,9 +20,7 @@ from tests.factories import (
 )
 
 
-async def _create_orphan_review(
-    *, days_ago: int = 8, visible_at: datetime | None = None
-) -> dict:
+async def _create_orphan_review(*, days_ago: int = 8, visible_at: datetime | None = None) -> dict:
     """Cria review órfã (só uma parte avaliou) com created_at N dias atrás."""
     suffix = uuid.uuid4().hex[:8]
     async with SessionLocal() as session:
@@ -69,9 +67,7 @@ async def test_reveals_review_older_than_7_days() -> None:
 
     # Verificar visible_at preenchido
     async with SessionLocal() as session:
-        review = await session.scalar(
-            select(Review).where(Review.id == ctx["review_id"])
-        )
+        review = await session.scalar(select(Review).where(Review.id == ctx["review_id"]))
     assert review is not None
     assert review.visible_at is not None
 
@@ -82,9 +78,7 @@ async def test_does_not_reveal_review_less_than_7_days() -> None:
     await reveal_reviews({})
 
     async with SessionLocal() as session:
-        review = await session.scalar(
-            select(Review).where(Review.id == ctx["review_id"])
-        )
+        review = await session.scalar(select(Review).where(Review.id == ctx["review_id"]))
     assert review is not None
     assert review.visible_at is None
 
@@ -97,9 +91,7 @@ async def test_does_not_touch_already_visible() -> None:
     await reveal_reviews({})
 
     async with SessionLocal() as session:
-        review = await session.scalar(
-            select(Review).where(Review.id == ctx["review_id"])
-        )
+        review = await session.scalar(select(Review).where(Review.id == ctx["review_id"]))
     assert review is not None
     # visible_at não mudou
     assert abs((review.visible_at - original_visible).total_seconds()) < 2
@@ -131,11 +123,7 @@ async def test_multiple_reviews_revealed_in_batch() -> None:
     assert result["revealed"] >= 2
 
     async with SessionLocal() as session:
-        r1 = await session.scalar(
-            select(Review).where(Review.id == ctx1["review_id"])
-        )
-        r2 = await session.scalar(
-            select(Review).where(Review.id == ctx2["review_id"])
-        )
+        r1 = await session.scalar(select(Review).where(Review.id == ctx1["review_id"]))
+        r2 = await session.scalar(select(Review).where(Review.id == ctx2["review_id"]))
     assert r1 is not None and r1.visible_at is not None
     assert r2 is not None and r2.visible_at is not None

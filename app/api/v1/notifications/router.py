@@ -52,9 +52,7 @@ async def mark_read(
     user_id: UserIdDep,
     session: SessionDep,
 ) -> NotificationRead:
-    return await NotificationService(session).mark_read(
-        user_id=user_id, notif_id=notif_id
-    )
+    return await NotificationService(session).mark_read(user_id=user_id, notif_id=notif_id)
 
 
 @router.post(

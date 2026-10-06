@@ -30,9 +30,7 @@ async def _register_and_login(
 async def test_get_me_without_profile(client: AsyncClient) -> None:
     email = _unique_email()
     _uid, token = await _register_and_login(client, email)
-    response = await client.get(
-        "/v1/me", headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await client.get("/v1/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     data = response.json()
     assert data["email"] == email
@@ -49,9 +47,7 @@ async def test_get_me_with_profile(client: AsyncClient) -> None:
         json={"display_name": "Tested", "phone": "+5511988887777"},
     )
 
-    response = await client.get(
-        "/v1/me", headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await client.get("/v1/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
     data = response.json()
     assert data["freelancer_profile"]["display_name"] == "Tested"
@@ -65,9 +61,7 @@ async def test_export_includes_decrypted_cpf(client: AsyncClient) -> None:
         json={"display_name": "Exporter", "cpf": VALID_CPF},
     )
 
-    response = await client.get(
-        "/v1/me/export", headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await client.get("/v1/me/export", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["cpf"] == VALID_CPF  # decriptado
@@ -83,9 +77,7 @@ async def test_delete_me_soft_deletes_and_returns_purge_date(
 ) -> None:
     _uid, token = await _register_and_login(client, _unique_email())
 
-    response = await client.delete(
-        "/v1/me", headers={"Authorization": f"Bearer {token}"}
-    )
+    response = await client.delete("/v1/me", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200, response.text
     data = response.json()
     assert data["status"] == "scheduled_for_deletion"
@@ -99,18 +91,12 @@ async def test_login_fails_after_delete_me(client: AsyncClient) -> None:
         "/v1/auth/register",
         json={"email": email, "password": pwd, "role": "freelancer"},
     )
-    login = await client.post(
-        "/v1/auth/login", json={"email": email, "password": pwd}
-    )
+    login = await client.post("/v1/auth/login", json={"email": email, "password": pwd})
     token = login.json()["access_token"]
 
-    delete = await client.delete(
-        "/v1/me", headers={"Authorization": f"Bearer {token}"}
-    )
+    delete = await client.delete("/v1/me", headers={"Authorization": f"Bearer {token}"})
     assert delete.status_code == 200
 
     # UserRepository.get_by_email filtra deleted_at IS NULL → login agora falha
-    after = await client.post(
-        "/v1/auth/login", json={"email": email, "password": pwd}
-    )
+    after = await client.post("/v1/auth/login", json={"email": email, "password": pwd})
     assert after.status_code == 401

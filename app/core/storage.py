@@ -15,9 +15,7 @@ from app.core.config import get_settings
 if TYPE_CHECKING:
     from mypy_boto3_s3.client import S3Client
 
-ALLOWED_AVATAR_TYPES: Final[frozenset[str]] = frozenset(
-    {"image/jpeg", "image/png", "image/webp"}
-)
+ALLOWED_AVATAR_TYPES: Final[frozenset[str]] = frozenset({"image/jpeg", "image/png", "image/webp"})
 MAX_AVATAR_BYTES: Final[int] = 5 * 1024 * 1024  # 5 MB
 
 _EXT_BY_TYPE: Final[dict[str, str]] = {

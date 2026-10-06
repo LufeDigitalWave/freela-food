@@ -35,9 +35,7 @@ class EstablishmentProfile(Base, TimestampMixin, SoftDeleteMixin):
     )
 
     # Rating agregado (Sprint 5)
-    average_rating: Mapped[Decimal | None] = mapped_column(
-        Numeric(3, 2), nullable=True
-    )
+    average_rating: Mapped[Decimal | None] = mapped_column(Numeric(3, 2), nullable=True)
     total_reviews: Mapped[int] = mapped_column(
         Integer, nullable=False, default=0, server_default="0"
     )

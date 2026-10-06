@@ -66,9 +66,7 @@ class ContractRepository:
         )
         if status_filter is not None:
             base = base.where(ServiceContract.status == status_filter)
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
             base.order_by(ServiceContract.start_at.desc())
             .offset((page - 1) * page_size)

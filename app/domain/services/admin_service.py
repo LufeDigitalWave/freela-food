@@ -78,9 +78,7 @@ class AdminService:
             page_size=page_size,
         )
 
-    async def get_user_detail(
-        self, *, user_id: uuid.UUID
-    ) -> AdminUserDetail:
+    async def get_user_detail(self, *, user_id: uuid.UUID) -> AdminUserDetail:
         user = await self._repo.get_user_by_id(user_id)
         if user is None:
             raise NotFoundError("Usuário não encontrado")
@@ -99,9 +97,7 @@ class AdminService:
             reviews_received=reviews_received,
         )
 
-    async def deactivate_user(
-        self, *, admin_id: uuid.UUID, user_id: uuid.UUID
-    ) -> AdminUserRead:
+    async def deactivate_user(self, *, admin_id: uuid.UUID, user_id: uuid.UUID) -> AdminUserRead:
         user = await self._repo.get_user_by_id(user_id)
         if user is None:
             raise NotFoundError("Usuário não encontrado")
@@ -121,9 +117,7 @@ class AdminService:
         await self._session.refresh(user)
         return AdminUserRead.model_validate(user)
 
-    async def reactivate_user(
-        self, *, admin_id: uuid.UUID, user_id: uuid.UUID
-    ) -> AdminUserRead:
+    async def reactivate_user(self, *, admin_id: uuid.UUID, user_id: uuid.UUID) -> AdminUserRead:
         user = await self._repo.get_user_by_id(user_id)
         if user is None:
             raise NotFoundError("Usuário não encontrado")

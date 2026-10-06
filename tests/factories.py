@@ -105,9 +105,7 @@ async def make_skill_category(
     session: AsyncSession, *, slug: str = "garcom", name: str = "Garçom"
 ) -> SkillCategory:
     """Retorna a SkillCategory com esse slug; cria se não existir."""
-    result = await session.execute(
-        select(SkillCategory).where(SkillCategory.slug == slug)
-    )
+    result = await session.execute(select(SkillCategory).where(SkillCategory.slug == slug))
     existing = result.scalar_one_or_none()
     if existing is not None:
         return existing
@@ -335,8 +333,6 @@ async def auth_header_for(
     client: AsyncClient, email: str, password: str = "Senha123!"
 ) -> dict[str, str]:
     """Login via API e retorna {Authorization: Bearer ...}."""
-    resp = await client.post(
-        "/v1/auth/login", json={"email": email, "password": password}
-    )
+    resp = await client.post("/v1/auth/login", json={"email": email, "password": password})
     assert resp.status_code == 200, resp.text
     return {"Authorization": f"Bearer {resp.json()['access_token']}"}

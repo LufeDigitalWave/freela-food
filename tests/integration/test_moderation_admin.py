@@ -222,16 +222,12 @@ async def test_resolve_notifies_reporter(client: AsyncClient) -> None:
 async def test_admin_hide_review(client: AsyncClient) -> None:
     ctx = await _create_visible_review()
     _, headers = await _admin_headers(client)
-    resp = await client.post(
-        f"/v1/admin/reviews/{ctx['review_id']}/hide", headers=headers
-    )
+    resp = await client.post(f"/v1/admin/reviews/{ctx['review_id']}/hide", headers=headers)
     assert resp.status_code == 204
 
     # Verificar que hidden_at está preenchido
     async with SessionLocal() as session:
-        review = await session.scalar(
-            select(Review).where(Review.id == ctx["review_id"])
-        )
+        review = await session.scalar(select(Review).where(Review.id == ctx["review_id"]))
     assert review is not None
     assert review.hidden_at is not None
 
@@ -243,15 +239,11 @@ async def test_admin_unhide_review(client: AsyncClient) -> None:
     # Hide first
     await client.post(f"/v1/admin/reviews/{ctx['review_id']}/hide", headers=headers)
     # Then unhide
-    resp = await client.post(
-        f"/v1/admin/reviews/{ctx['review_id']}/unhide", headers=headers
-    )
+    resp = await client.post(f"/v1/admin/reviews/{ctx['review_id']}/unhide", headers=headers)
     assert resp.status_code == 204
 
     async with SessionLocal() as session:
-        review = await session.scalar(
-            select(Review).where(Review.id == ctx["review_id"])
-        )
+        review = await session.scalar(select(Review).where(Review.id == ctx["review_id"]))
     assert review is not None
     assert review.hidden_at is None
 

@@ -221,9 +221,7 @@ class ProfileService:
         await self._session.commit()
         return _establishment_to_read(profile)
 
-    async def get_establishment(
-        self, user_id: uuid.UUID
-    ) -> EstablishmentProfileRead | None:
+    async def get_establishment(self, user_id: uuid.UUID) -> EstablishmentProfileRead | None:
         profile = await self._profile_repo.get_establishment(user_id)
         return _establishment_to_read(profile) if profile is not None else None
 

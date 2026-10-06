@@ -62,9 +62,7 @@ async def test_first_review_sets_rating() -> None:
     # Profile do freelancer deve ter average_rating=4.00, total_reviews=1
     async with SessionLocal() as session:
         fp = await session.scalar(
-            select(FreelancerProfile).where(
-                FreelancerProfile.user_id == ctx["fl_id"]
-            )
+            select(FreelancerProfile).where(FreelancerProfile.user_id == ctx["fl_id"])
         )
     assert fp is not None
     assert fp.total_reviews == 1
@@ -87,8 +85,11 @@ async def test_second_review_recalculates_average() -> None:
         est2, _ = await make_establishment(session, email=f"est2-{suffix2}@test.com")
         cat = await make_skill_category(session)
         job2 = await make_job(
-            session, establishment_id=est2.id, skill_category_id=cat.id,
-            title=f"Vaga {suffix2}", status="completed",
+            session,
+            establishment_id=est2.id,
+            skill_category_id=cat.id,
+            title=f"Vaga {suffix2}",
+            status="completed",
         )
         app2 = await make_application(
             session, job_posting_id=job2.id, freelancer_id=ctx1["fl_id"], status="accepted"
@@ -113,9 +114,7 @@ async def test_second_review_recalculates_average() -> None:
     # Média = (4+2)/2 = 3.00
     async with SessionLocal() as session:
         fp = await session.scalar(
-            select(FreelancerProfile).where(
-                FreelancerProfile.user_id == ctx1["fl_id"]
-            )
+            select(FreelancerProfile).where(FreelancerProfile.user_id == ctx1["fl_id"])
         )
     assert fp is not None
     assert fp.total_reviews == 2
@@ -134,9 +133,7 @@ async def test_rating_updates_establishment_profile() -> None:
 
     async with SessionLocal() as session:
         ep = await session.scalar(
-            select(EstablishmentProfile).where(
-                EstablishmentProfile.user_id == ctx["est_id"]
-            )
+            select(EstablishmentProfile).where(EstablishmentProfile.user_id == ctx["est_id"])
         )
     assert ep is not None
     assert ep.total_reviews == 1
@@ -157,9 +154,7 @@ async def test_reviewer_rating_unchanged() -> None:
     # Freelancer (reviewer) não deve ter rating alterado
     async with SessionLocal() as session:
         fp = await session.scalar(
-            select(FreelancerProfile).where(
-                FreelancerProfile.user_id == ctx["fl_id"]
-            )
+            select(FreelancerProfile).where(FreelancerProfile.user_id == ctx["fl_id"])
         )
     assert fp is not None
     assert fp.total_reviews == 0
@@ -180,8 +175,11 @@ async def test_five_reviews_average_precision() -> None:
         async with SessionLocal() as session:
             est_i, _ = await make_establishment(session, email=f"est-{s}@test.com")
             job_i = await make_job(
-                session, establishment_id=est_i.id, skill_category_id=cat.id,
-                title=f"Vaga {s}", status="completed",
+                session,
+                establishment_id=est_i.id,
+                skill_category_id=cat.id,
+                title=f"Vaga {s}",
+                status="completed",
             )
             app_i = await make_application(
                 session, job_posting_id=job_i.id, freelancer_id=fl.id, status="accepted"

@@ -32,9 +32,7 @@ class ApplicationRepository:
         return app_
 
     async def get_by_id(self, app_id: uuid.UUID) -> Application | None:
-        result = await self._session.execute(
-            select(Application).where(Application.id == app_id)
-        )
+        result = await self._session.execute(select(Application).where(Application.id == app_id))
         return result.scalar_one_or_none()
 
     async def list_for_job(
@@ -45,15 +43,11 @@ class ApplicationRepository:
         page: int,
         page_size: int,
     ) -> tuple[list[Application], int]:
-        base = select(Application).where(
-            Application.job_posting_id == job_posting_id
-        )
+        base = select(Application).where(Application.job_posting_id == job_posting_id)
         if status_filter is not None:
             base = base.where(Application.status == status_filter)
 
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
             base.order_by(Application.created_at.desc())
             .offset((page - 1) * page_size)
@@ -98,9 +92,7 @@ class ApplicationRepository:
         if status_filter is not None:
             base = base.where(Application.status == status_filter)
 
-        total = await self._session.scalar(
-            select(func.count()).select_from(base.subquery())
-        )
+        total = await self._session.scalar(select(func.count()).select_from(base.subquery()))
         result = await self._session.execute(
             base.order_by(Application.created_at.desc())
             .offset((page - 1) * page_size)
