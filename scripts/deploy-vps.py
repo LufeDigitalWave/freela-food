@@ -113,16 +113,18 @@ def main() -> None:
     vps_pass = os.getenv("VPS_PASSWORD") or env.get("VPS_PASSWORD", "")
     project_dir = os.getenv("VPS_PROJECT_DIR") or env.get("VPS_PROJECT_DIR", "/opt/freela-food")
     compose_file = os.getenv("COMPOSE_FILE") or env.get("COMPOSE_FILE", "docker-compose.deploy.yml")
-    git_repo = os.getenv("GIT_REPO") or env.get("GIT_REPO", "https://github.com/LufeDigitalWave/freela-food.git")
+    git_repo = os.getenv("GIT_REPO") or env.get(
+        "GIT_REPO", "https://github.com/LufeDigitalWave/freela-food.git"
+    )
 
     if not vps_host or not vps_pass:
         print("❌ VPS_HOST e VPS_PASSWORD são obrigatórios")
         print("   Configure via env vars ou .env.deploy (NÃO COMMITE)")
         sys.exit(1)
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  DEPLOY: freela-food → {vps_host}")
-    print(f"{'='*60}\n")
+    print(f"{'=' * 60}\n")
 
     # ─── Conectar SSH ──────────────────────────────────
     print("[1/7] Conectando SSH...")
@@ -164,7 +166,11 @@ def main() -> None:
                 for line in f:
                     stripped = line.strip()
                     # Pular variáveis de deploy (NÃO devem ir pro .env de runtime)
-                    if stripped.startswith("VPS_") or stripped.startswith("GIT_") or stripped.startswith("COMPOSE_FILE"):
+                    if (
+                        stripped.startswith("VPS_")
+                        or stripped.startswith("GIT_")
+                        or stripped.startswith("COMPOSE_FILE")
+                    ):
                         continue
                     env_content_lines.append(line)
 
@@ -184,9 +190,7 @@ def main() -> None:
 
         # ─── Up ───────────────────────────────────────
         print("[6/7] Subindo containers...")
-        run_remote(
-            ssh, f"cd {project_dir} && docker compose -f {compose_file} up -d 2>&1"
-        )
+        run_remote(ssh, f"cd {project_dir} && docker compose -f {compose_file} up -d 2>&1")
         print("  → Esperando 20s para health checks...")
         time.sleep(20)
         print("  ✓ Containers up\n")
@@ -198,18 +202,18 @@ def main() -> None:
         )
 
         # Health check via Caddy
-        health_out, _ = run_remote(
-            ssh, "curl -sf http://localhost/health || echo 'HEALTH_FAILED'"
-        )
+        health_out, _ = run_remote(ssh, "curl -sf http://localhost/health || echo 'HEALTH_FAILED'")
         healthy = "HEALTH_FAILED" not in health_out
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"  DEPLOY {'✓ SUCESSO' if healthy else '⚠ PARCIAL'}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"\n  Endpoints:")
         print(f"    API:    http://{vps_host}/health")
         print(f"    App:    http://{vps_host}/")
-        print(f"\n  Logs: ssh {vps_user}@{vps_host} 'cd {project_dir} && docker compose -f {compose_file} logs -f'\n")
+        print(
+            f"\n  Logs: ssh {vps_user}@{vps_host} 'cd {project_dir} && docker compose -f {compose_file} logs -f'\n"
+        )
         if not healthy:
             sys.exit(1)
 

@@ -5,6 +5,7 @@ Revises: 006_reviews
 Create Date: 2026-07-07 10:00:00
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -22,7 +23,12 @@ def upgrade() -> None:
     # --- Tabela reports ---
     op.create_table(
         "reports",
-        sa.Column("id", PG_UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id",
+            PG_UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
         sa.Column("reporter_id", PG_UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False),
         sa.Column("target_type", sa.String(20), nullable=False),
         sa.Column("target_id", PG_UUID(as_uuid=True), nullable=False),
@@ -32,7 +38,12 @@ def upgrade() -> None:
         sa.Column("resolved_by", PG_UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=True),
         sa.Column("resolved_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("resolution_note", sa.Text, nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
         # Constraints
         sa.CheckConstraint(
             "target_type IN ('user', 'review')",

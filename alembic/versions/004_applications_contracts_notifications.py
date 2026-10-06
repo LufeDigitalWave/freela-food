@@ -5,6 +5,7 @@ Revises: 003_jobs_and_geo
 Create Date: 2026-05-28 10:00:00
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -22,9 +23,7 @@ def upgrade() -> None:
     # ── applications ─────────────────────────────────────────────────────────
     op.create_table(
         "applications",
-        sa.Column(
-            "id", sa.UUID(), nullable=False, server_default=sa.text("gen_random_uuid()")
-        ),
+        sa.Column("id", sa.UUID(), nullable=False, server_default=sa.text("gen_random_uuid()")),
         sa.Column("job_posting_id", sa.UUID(), nullable=False),
         sa.Column("freelancer_id", sa.UUID(), nullable=False),
         sa.Column(
@@ -47,9 +46,7 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("decided_at", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["job_posting_id"], ["job_postings.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["job_posting_id"], ["job_postings.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["freelancer_id"], ["users.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint(
@@ -78,9 +75,7 @@ def upgrade() -> None:
     # ── service_contracts ────────────────────────────────────────────────────
     op.create_table(
         "service_contracts",
-        sa.Column(
-            "id", sa.UUID(), nullable=False, server_default=sa.text("gen_random_uuid()")
-        ),
+        sa.Column("id", sa.UUID(), nullable=False, server_default=sa.text("gen_random_uuid()")),
         sa.Column("application_id", sa.UUID(), nullable=False),
         sa.Column("job_posting_id", sa.UUID(), nullable=False),
         sa.Column("freelancer_id", sa.UUID(), nullable=False),
@@ -130,9 +125,7 @@ def upgrade() -> None:
             "cancelled_by IS NULL OR cancelled_by IN ('freelancer', 'establishment', 'system')",
             name="service_contracts_cancelled_by_check",
         ),
-        sa.CheckConstraint(
-            "end_at > start_at", name="service_contracts_dates_check"
-        ),
+        sa.CheckConstraint("end_at > start_at", name="service_contracts_dates_check"),
         sa.CheckConstraint(
             "(cancelled_at IS NULL AND cancelled_by IS NULL) "
             "OR (cancelled_at IS NOT NULL AND cancelled_by IS NOT NULL)",
@@ -167,9 +160,7 @@ def upgrade() -> None:
     # ── notifications ────────────────────────────────────────────────────────
     op.create_table(
         "notifications",
-        sa.Column(
-            "id", sa.UUID(), nullable=False, server_default=sa.text("gen_random_uuid()")
-        ),
+        sa.Column("id", sa.UUID(), nullable=False, server_default=sa.text("gen_random_uuid()")),
         sa.Column("user_id", sa.UUID(), nullable=False),
         sa.Column("type", sa.String(length=50), nullable=False),
         sa.Column(
@@ -220,23 +211,11 @@ def downgrade() -> None:
     op.drop_column("freelancer_profiles", "no_show_count")
     op.drop_index("ix_notifications_user_read_created", table_name="notifications")
     op.drop_table("notifications")
-    op.drop_index(
-        "ix_service_contracts_job_posting", table_name="service_contracts"
-    )
-    op.drop_index(
-        "ix_service_contracts_status_end_at", table_name="service_contracts"
-    )
-    op.drop_index(
-        "ix_service_contracts_status_start_at", table_name="service_contracts"
-    )
-    op.drop_index(
-        "ix_service_contracts_freelancer_status_dates", table_name="service_contracts"
-    )
+    op.drop_index("ix_service_contracts_job_posting", table_name="service_contracts")
+    op.drop_index("ix_service_contracts_status_end_at", table_name="service_contracts")
+    op.drop_index("ix_service_contracts_status_start_at", table_name="service_contracts")
+    op.drop_index("ix_service_contracts_freelancer_status_dates", table_name="service_contracts")
     op.drop_table("service_contracts")
-    op.drop_index(
-        "ix_applications_freelancer_status", table_name="applications"
-    )
-    op.drop_index(
-        "ix_applications_job_posting_status", table_name="applications"
-    )
+    op.drop_index("ix_applications_freelancer_status", table_name="applications")
+    op.drop_index("ix_applications_job_posting_status", table_name="applications")
     op.drop_table("applications")

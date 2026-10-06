@@ -5,6 +5,7 @@ Revises: 004_apps_contracts_notif
 Create Date: 2026-06-01 10:00:00
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -21,9 +22,7 @@ def upgrade() -> None:
     # invitations
     op.create_table(
         "invitations",
-        sa.Column(
-            "id", sa.UUID(), nullable=False, server_default=sa.text("gen_random_uuid()")
-        ),
+        sa.Column("id", sa.UUID(), nullable=False, server_default=sa.text("gen_random_uuid()")),
         sa.Column("establishment_id", sa.UUID(), nullable=False),
         sa.Column("freelancer_id", sa.UUID(), nullable=False),
         sa.Column("skill_category_id", sa.UUID(), nullable=False),
@@ -32,9 +31,7 @@ def upgrade() -> None:
         sa.Column("proposed_hourly_rate", sa.Numeric(10, 2), nullable=True),
         sa.Column("proposed_total_pay", sa.Numeric(10, 2), nullable=True),
         sa.Column("message", sa.Text(), nullable=True),
-        sa.Column(
-            "status", sa.String(length=20), nullable=False, server_default="pending"
-        ),
+        sa.Column("status", sa.String(length=20), nullable=False, server_default="pending"),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("decided_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column(
@@ -78,9 +75,7 @@ def upgrade() -> None:
     # service_contracts: origem polimorfica
     op.alter_column("service_contracts", "application_id", nullable=True)
     op.alter_column("service_contracts", "job_posting_id", nullable=True)
-    op.add_column(
-        "service_contracts", sa.Column("invitation_id", sa.UUID(), nullable=True)
-    )
+    op.add_column("service_contracts", sa.Column("invitation_id", sa.UUID(), nullable=True))
     op.create_foreign_key(
         "fk_service_contracts_invitation",
         "service_contracts",
@@ -100,15 +95,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_constraint(
-        "service_contracts_origin_check", "service_contracts", type_="check"
-    )
-    op.drop_constraint(
-        "uq_service_contracts_invitation", "service_contracts", type_="unique"
-    )
-    op.drop_constraint(
-        "fk_service_contracts_invitation", "service_contracts", type_="foreignkey"
-    )
+    op.drop_constraint("service_contracts_origin_check", "service_contracts", type_="check")
+    op.drop_constraint("uq_service_contracts_invitation", "service_contracts", type_="unique")
+    op.drop_constraint("fk_service_contracts_invitation", "service_contracts", type_="foreignkey")
     op.drop_column("service_contracts", "invitation_id")
     op.alter_column("service_contracts", "job_posting_id", nullable=False)
     op.alter_column("service_contracts", "application_id", nullable=False)

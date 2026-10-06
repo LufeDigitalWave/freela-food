@@ -5,6 +5,7 @@ Revises: 007_reports_moderation
 Create Date: 2026-07-07 14:00:00
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -22,8 +23,18 @@ def upgrade() -> None:
     # --- Tabela payments ---
     op.create_table(
         "payments",
-        sa.Column("id", PG_UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("contract_id", PG_UUID(as_uuid=True), sa.ForeignKey("service_contracts.id"), nullable=False),
+        sa.Column(
+            "id",
+            PG_UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
+        sa.Column(
+            "contract_id",
+            PG_UUID(as_uuid=True),
+            sa.ForeignKey("service_contracts.id"),
+            nullable=False,
+        ),
         sa.Column("amount", sa.Numeric(10, 2), nullable=False),
         sa.Column("status", sa.String(20), nullable=False, server_default="pending"),
         sa.Column("pix_key", sa.String(100), nullable=True),
@@ -31,7 +42,12 @@ def upgrade() -> None:
         sa.Column("confirmed_by", PG_UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=True),
         sa.Column("disputed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("notes", sa.Text, nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
         # Constraints
         sa.UniqueConstraint("contract_id", name="uq_payments_contract"),
         sa.CheckConstraint(

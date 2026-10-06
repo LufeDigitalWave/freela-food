@@ -5,6 +5,7 @@ Revises: 005_invitations_origin
 Create Date: 2026-07-06 10:00:00
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -22,18 +23,35 @@ def upgrade() -> None:
     # --- Tabela reviews ---
     op.create_table(
         "reviews",
-        sa.Column("id", PG_UUID(as_uuid=True), primary_key=True, server_default=sa.text("gen_random_uuid()")),
-        sa.Column("contract_id", PG_UUID(as_uuid=True), sa.ForeignKey("service_contracts.id"), nullable=False),
+        sa.Column(
+            "id",
+            PG_UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
+        sa.Column(
+            "contract_id",
+            PG_UUID(as_uuid=True),
+            sa.ForeignKey("service_contracts.id"),
+            nullable=False,
+        ),
         sa.Column("reviewer_id", PG_UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False),
         sa.Column("reviewee_id", PG_UUID(as_uuid=True), sa.ForeignKey("users.id"), nullable=False),
         sa.Column("stars", sa.SmallInteger, nullable=False),
         sa.Column("comment", sa.Text, nullable=True),
         sa.Column("visible_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
         # Constraints
         sa.UniqueConstraint("contract_id", "reviewer_id", name="uq_reviews_contract_reviewer"),
         sa.CheckConstraint("stars >= 1 AND stars <= 5", name="reviews_stars_check"),
-        sa.CheckConstraint("comment IS NULL OR length(comment) <= 2000", name="reviews_comment_length_check"),
+        sa.CheckConstraint(
+            "comment IS NULL OR length(comment) <= 2000", name="reviews_comment_length_check"
+        ),
         sa.CheckConstraint("reviewer_id != reviewee_id", name="reviews_no_self_review_check"),
     )
 
